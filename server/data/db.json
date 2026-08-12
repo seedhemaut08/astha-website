@@ -34,6 +34,7 @@
       "inStock": true,
       "createdAt": "2026-07-21T19:36:16.396Z"
     },
+
     {
       "id": "pBLbLCPs3d",
       "category": "Lakshmi Ji",
@@ -67,39 +68,75 @@
       "inStock": true,
       "createdAt": "2026-07-21T19:36:16.396Z"
     },
+
     {
-      "id": "SSflaSSzyV",
-      "category": "Hanuman Ji",
-      "name": "Veer Hanuman Murti",
-      "price": 5999,
-      "weight": "560g",
-      "height": "7 inch",
-      "description": "A powerful standing Hanuman idol with gada in hand, detailed armour and flowing angavastram.",
+      "id": "KLClock001",
+      "category": "Krishnaleela Clock",
+      "name": "Krishnaleela Silver Clock",
+      "price": 12999,
+      "weight": "1.2kg",
+      "height": "12 inch",
+      "description": "An elegant silver-finished decorative clock inspired by the timeless stories of Krishna Leela, designed as a statement piece for the home.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-08-12T00:00:00.000Z"
     },
     {
-      "id": "5WWxLOylDC",
-      "category": "Hanuman Ji",
-      "name": "Sankat Mochan Hanuman",
-      "price": 4299,
-      "weight": "400g",
-      "height": "5.5 inch",
-      "description": "Hanuman ji in blessing posture, believed to remove obstacles and protect the household.",
+      "id": "KLClock002",
+      "category": "Krishnaleela Clock",
+      "name": "Krishna Leela Heritage Clock",
+      "price": 15999,
+      "weight": "1.5kg",
+      "height": "14 inch",
+      "description": "A detailed decorative clock celebrating Krishna's divine leela, crafted to bring an artistic and timeless presence to the room.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-08-12T00:00:00.000Z"
     },
     {
-      "id": "mtdFWlqCGh",
-      "category": "Hanuman Ji",
-      "name": "Panchmukhi Hanuman Idol",
-      "price": 8499,
-      "weight": "700g",
-      "height": "7.5 inch",
-      "description": "Five-faced Hanuman murti, an intricate and rare piece for dedicated devotees.",
+      "id": "KLClock003",
+      "category": "Krishnaleela Clock",
+      "name": "Radha Krishna Royal Clock",
+      "price": 18999,
+      "weight": "1.8kg",
+      "height": "16 inch",
+      "description": "A premium silver-finished clock featuring a Radha Krishna inspired design, created as a luxurious decorative centrepiece.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-08-12T00:00:00.000Z"
     },
+
+    {
+      "id": "Peacock001",
+      "category": "Peacock",
+      "name": "Royal Peacock Silver Showpiece",
+      "price": 7499,
+      "weight": "520g",
+      "height": "8 inch",
+      "description": "An intricately detailed silver-finished peacock showpiece, designed to add elegance and artistic character to your space.",
+      "inStock": true,
+      "createdAt": "2026-08-12T00:00:00.000Z"
+    },
+    {
+      "id": "Peacock002",
+      "category": "Peacock",
+      "name": "Peacock Pair Silver Decor",
+      "price": 10999,
+      "weight": "780g",
+      "height": "9 inch",
+      "description": "A beautifully crafted pair of silver-finished peacocks, ideal for premium home decor and gifting.",
+      "inStock": true,
+      "createdAt": "2026-08-12T00:00:00.000Z"
+    },
+    {
+      "id": "Peacock003",
+      "category": "Peacock",
+      "name": "Majestic Peacock Centrepiece",
+      "price": 13999,
+      "weight": "950g",
+      "height": "11 inch",
+      "description": "A statement peacock centrepiece featuring intricate feather detailing and a refined silver finish.",
+      "inStock": true,
+      "createdAt": "2026-08-12T00:00:00.000Z"
+    },
+
     {
       "id": "0DixiJKcPK",
       "category": "Shiv Ji",
@@ -133,6 +170,7 @@
       "inStock": true,
       "createdAt": "2026-07-21T19:36:16.396Z"
     },
+
     {
       "id": "lf3eAhBGCs",
       "category": "Krishna Ji",

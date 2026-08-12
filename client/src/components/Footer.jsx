@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="footer__inner">
         <div className="footer__brand">
           <span className="footer__brand-text">ASTHA</span>
-          <p>Silver idols, crafted with devotion — for the home mandir and every milestone worth blessing.</p>
+          <p>Crafted with tradition. <br />Made with devotion. <br />Meant to be cherished.</p>
           <div className="footer__socials">
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <Instagram size={18} strokeWidth={1.5} />
