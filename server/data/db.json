@@ -1,198 +1,313 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "TTehCP5KN2",
+      "name": "Lakshay Bhatt",
+      "email": "lakshaybhatt08@gmail.com",
+      "phone": "6378222178",
+      "password": "$2a$10$7uvSwArgm5D6MZJIQBREi.4tMViPD0ylcz5yORiwaVHuiY8FnRpma",
+      "createdAt": "2026-08-19T06:42:04.229Z"
+    },
+    {
+      "id": "W-VQP-tgod",
+      "name": "Amit ",
+      "email": "jha01amit@gmail.com",
+      "phone": "8949286898",
+      "password": "$2a$10$mkdEsLPm0OqVelCbHOeCa.gFBoHI8hcJwAhRoZPM6bi69V9hKW.i2",
+      "createdAt": "2026-08-19T08:03:34.727Z"
+    }
+  ],
   "products": [
     {
       "id": "fIYolTduDq",
       "category": "Ganesh Ji",
       "name": "Riddhi Siddhi Ganesh Murti",
-      "price": 4499,
+      "price": 3150,
+      "mrp": 4650,
+      "discount": 32.26,
       "weight": "450g",
-      "height": "6 inch",
-      "description": "Hand-finished silver Ganesh idol seated on a lotus base, flanked by Riddhi and Siddhi, crafted for the home mandir.",
+      "height": "3 inch",
+      "description": "Hand-finished silver Ganesh idol featuring intricate traditional detailing, crafted as an auspicious addition to your home mandir, festive decor or gifting collection.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-07-21T19:36:16.396Z",
+      "image": "/images/devotion/ganesh.webp",
+      "video": "/images/devotion/ganeshr.mp4"
     },
-    {
-      "id": "6otS1SGey1",
-      "category": "Ganesh Ji",
-      "name": "Bal Ganesh Silver Idol",
-      "price": 2999,
-      "weight": "280g",
-      "height": "4.5 inch",
-      "description": "A playful Bal Ganesh murti with fine trunk detailing, ideal as a housewarming or wedding gift.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-    {
-      "id": "8FF3MvMQLU",
-      "category": "Ganesh Ji",
-      "name": "Panchmukhi Ganesh Statue",
-      "price": 7999,
-      "weight": "620g",
-      "height": "7 inch",
-      "description": "Rare five-faced Ganesh idol representing the five elements, finished with intricate mukut work.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-
     {
       "id": "pBLbLCPs3d",
       "category": "Lakshmi Ji",
       "name": "Kamal Aasan Lakshmi Murti",
-      "price": 5499,
+      "price": 20390,
+      "mrp": 22440,
+      "discount": 9.14,
       "weight": "480g",
-      "height": "6.5 inch",
-      "description": "Goddess Lakshmi seated on a full-bloom lotus, coins cascading from her palm, for prosperity and abundance.",
+      "height": "7 inch",
+      "description": "An elegant silver-finished Lakshmi idol seated gracefully on a lotus, symbolising prosperity, abundance and divine grace. Ideal for home worship and auspicious gifting.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-07-21T19:36:16.396Z",
+      "image": "/images/devotion/lakshmi.png",
+      "video": "/images/devotion/lakshmir.mp4"
     },
-    {
-      "id": "q37q1ZhF6v",
-      "category": "Lakshmi Ji",
-      "name": "Lakshmi Ganesh Jodi",
-      "price": 8999,
-      "weight": "750g",
-      "height": "6 inch pair",
-      "description": "The classic Diwali pairing — Lakshmi and Ganesh together on a single ornate silver platform.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-    {
-      "id": "G1FZ_19sEE",
-      "category": "Lakshmi Ji",
-      "name": "Gaja Lakshmi Idol",
-      "price": 6999,
-      "weight": "540g",
-      "height": "6 inch",
-      "description": "Lakshmi flanked by two elephants performing abhishek, a symbol of royal fortune.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-
     {
       "id": "KLClock001",
       "category": "Krishnaleela Clock",
       "name": "Krishnaleela Silver Clock",
-      "price": 12999,
+      "price": 24500,
+      "mrp": 26950,
+      "discount": 9.09,
       "weight": "1.2kg",
       "height": "12 inch",
-      "description": "An elegant silver-finished decorative clock inspired by the timeless stories of Krishna Leela, designed as a statement piece for the home.",
+      "description": "An elegant silver-finished decorative clock inspired by the timeless stories of Krishna Leela, combining devotional artistry with a statement home decor design.",
       "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
+      "createdAt": "2026-08-12T00:00:00.000Z",
+      "image": "/images/devotion/ghadi.png",
+      "video": "/images/devotion/clockr.mp4"
     },
-    {
-      "id": "KLClock002",
-      "category": "Krishnaleela Clock",
-      "name": "Krishna Leela Heritage Clock",
-      "price": 15999,
-      "weight": "1.5kg",
-      "height": "14 inch",
-      "description": "A detailed decorative clock celebrating Krishna's divine leela, crafted to bring an artistic and timeless presence to the room.",
-      "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
-    },
-    {
-      "id": "KLClock003",
-      "category": "Krishnaleela Clock",
-      "name": "Radha Krishna Royal Clock",
-      "price": 18999,
-      "weight": "1.8kg",
-      "height": "16 inch",
-      "description": "A premium silver-finished clock featuring a Radha Krishna inspired design, created as a luxurious decorative centrepiece.",
-      "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
-    },
-
     {
       "id": "Peacock001",
       "category": "Peacock",
       "name": "Royal Peacock Silver Showpiece",
-      "price": 7499,
+      "price": 24499,
+      "mrp": 27280,
+      "discount": 10.2,
       "weight": "520g",
-      "height": "8 inch",
-      "description": "An intricately detailed silver-finished peacock showpiece, designed to add elegance and artistic character to your space.",
+      "height": "12 inch",
+      "description": "An intricately detailed silver-finished peacock showpiece featuring an elegant sculptural form, designed to add a luxurious traditional character to your interior.",
       "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
+      "createdAt": "2026-08-12T00:00:00.000Z",
+      "image": "/images/devotion/mor.png",
+      "video": "/images/devotion/morr.mp4"
     },
     {
-      "id": "Peacock002",
-      "category": "Peacock",
-      "name": "Peacock Pair Silver Decor",
-      "price": 10999,
-      "weight": "780g",
-      "height": "9 inch",
-      "description": "A beautifully crafted pair of silver-finished peacocks, ideal for premium home decor and gifting.",
+      "id": "CowCalf001",
+      "category": "Kaamdhenu",
+      "name": "Sacred Kaamdhenu Silver Box",
+      "price": 9189,
+      "mrp": 10285,
+      "discount": 10.66,
+      "height": "4 inch",
+      "description": "A beautifully crafted silver-finished sacred cow and calf piece featuring ornate traditional detailing, symbolising purity, prosperity, nourishment and devotion.",
       "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
+      "createdAt": "2026-08-17T00:00:00.000Z",
+      "image": "/images/devotion/cow.png",
+      "video": "/images/devotion/cowr.mp4"
     },
     {
-      "id": "Peacock003",
-      "category": "Peacock",
-      "name": "Majestic Peacock Centrepiece",
-      "price": 13999,
-      "weight": "950g",
-      "height": "11 inch",
-      "description": "A statement peacock centrepiece featuring intricate feather detailing and a refined silver finish.",
-      "inStock": true,
-      "createdAt": "2026-08-12T00:00:00.000Z"
-    },
-
-    {
-      "id": "0DixiJKcPK",
-      "category": "Shiv Ji",
-      "name": "Shiv Parivar Murti",
-      "price": 9999,
-      "weight": "900g",
-      "height": "6 inch group",
-      "description": "The complete Shiv family — Shiva, Parvati, Ganesh and Kartikeya — on one ornate base.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-    {
-      "id": "6-BPaW9POj",
-      "category": "Shiv Ji",
-      "name": "Dhyan Mudra Shiv Idol",
-      "price": 5299,
-      "weight": "460g",
-      "height": "6 inch",
-      "description": "Lord Shiva in deep meditation, matted hair and trishul finely etched by hand.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
-    },
-    {
-      "id": "9H13voqs_r",
-      "category": "Shiv Ji",
-      "name": "Nataraja Silver Statue",
+      "id": "CandleStand001",
+      "category": "Candle Stand",
+      "name": "Royal Silver Candle Stand",
       "price": 11499,
-      "weight": "1.1kg",
-      "height": "9 inch",
-      "description": "Shiva as Nataraja within a silver prabhavali ring, our most detailed showpiece.",
+      "mrp": 12870,
+      "discount": 10.65,
+      "weight": "420g",
+      "height": "11 inch",
+      "description": "An elegant silver-finished candle stand featuring ornate traditional craftsmanship, designed to create a refined decorative statement in your living space.",
       "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+      "createdAt": "2026-08-17T00:00:00.000Z",
+      "image": "/images/devotion/candle.png",
+      "video": "/images/devotion/candler.mp4"
+    },
+    {
+      "id": "Shankh001",
+      "category": "Shankh",
+      "name": "Divine Silver Shankh",
+      "price": 7129,
+      "mrp": 7975,
+      "discount": 10.61,
+      "weight": "380g",
+      "height": "4 inch",
+      "description": "A detailed silver-finished Shankh adorned with traditional devotional motifs and intricate craftsmanship, created as a timeless spiritual and decorative showpiece.",
+      "inStock": true,
+      "createdAt": "2026-08-17T00:00:00.000Z",
+      "image": "/images/devotion/Shankh.png",
+      "video": "/images/devotion/Shankhr.mp4"
+    },
+    {
+      "id": "Swan001",
+      "category": "Swan",
+      "name": "Elegant Silver Swan Pair",
+      "price": 16400,
+      "mrp": 18040,
+      "discount": 9.09,
+      "weight": "560g",
+      "height": "11 inch",
+      "description": "A graceful pair of silver-finished swans featuring finely crafted feather detailing, designed as an elegant decorative centrepiece symbolising beauty and togetherness.",
+      "inStock": true,
+      "createdAt": "2026-08-17T00:00:00.000Z",
+      "image": "/images/devotion/swan%20.png",
+      "video": "/images/devotion/swanr.mp4"
+    },
+    {
+      "id": "Frame001",
+      "category": "Photo Frame",
+      "name": "Royal Silver Photo Frame",
+      "price": 10300,
+      "mrp": 11180,
+      "discount": 7.87,
+      "weight": "460g",
+      "height": "11 inch",
+      "description": "An elegant silver-finished photo frame featuring intricate floral detailing, designed to preserve cherished memories while adding a refined traditional aesthetic to your space.",
+      "inStock": true,
+      "createdAt": "2026-08-17T00:00:00.000Z",
+      "image": "/images/devotion/Frame.png"
     },
 
     {
-      "id": "lf3eAhBGCs",
-      "category": "Krishna Ji",
-      "name": "Bansuri Krishna Murti",
-      "price": 4799,
-      "weight": "420g",
-      "height": "6 inch",
-      "description": "Krishna playing the flute in classic tribhanga pose, peacock feather crown detailing.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.396Z"
+  "id": "RamMandir001",
+  "category": "Ram Mandir",
+  "name": "Shri Ram Mandir Silver Showpiece",
+  "price": 12000,
+  "mrp": 13200,
+  "discount": 9.09,
+  "weight": "850g",
+  "height": "5 inch",
+  "description": "A beautifully detailed silver-finished Ram Mandir showpiece, crafted as a graceful devotional centrepiece for the home. Its intricate traditional detailing makes it ideal for festive décor, gifting and devotional spaces.",
+  "inStock": true,
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "image": "/images/devotion/ramji.png",
+  "video": "/images/devotion/mandir.mp4"
+},
+{
+  "id": "PeacockCandle001",
+  "category": "Peacock Candle Stand",
+  "name": "Peacock Silver Candle Stand",
+  "price": 4600,
+  "mrp": 5260,
+  "discount": 12.55,
+  "weight": "480g",
+  "height": "3 inch",
+  "description": "A graceful peacock-inspired silver candle stand combining traditional craftsmanship with an elegant decorative form. Designed to add a refined and artistic touch to your home décor.",
+  "inStock": true,
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "image": "/images/devotion/peacockcover.JPG",
+  "video": "/images/devotion/peacockcanr.mp4"
+},
+{
+  "id": "Mahalakshmi001",
+  "category": "Mahalakshmi",
+  "name": "Mahalakshmi Silver Idol",
+  "price": 11600,
+  "mrp": 12870,
+  "discount": 9.87,
+  "weight": "620g",
+  "height": "8 inch",
+  "description": "An elegant silver-finished Mahalakshmi idol representing prosperity, abundance and divine grace. A beautiful choice for home worship, festive occasions and auspicious gifting.",
+  "inStock": true,
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "image": "/images/devotion/mahalakshmi.png",
+  "video": "/images/devotion/mahalakshmir.mp4"
+},
+{
+  "id": "LakshmiGaneshPair001",
+  "category": "Lakshmi Ganesh Pair",
+  "name": "Lakshmi Ganesh Silver Pair",
+  "price": 20390,
+  "mrp": 22440,
+  "discount": 9.14,
+  "weight": "760g",
+  "height": "7 inch pair",
+  "description": "A beautifully crafted Lakshmi and Ganesh pair in a refined silver finish, symbolising prosperity, wisdom and divine blessings. Perfect for festive gifting, home worship and elegant devotional displays.",
+  "inStock": true,
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "image": "/images/devotion/lakshganesh.png",
+  "video": "/images/devotion/lakshganeshr.mp4"
+}
+  ],
+  "orders": [
+    {
+      "id": "chnC78CSwu",
+      "userId": "TTehCP5KN2",
+      "items": [
+        {
+          "productId": "fIYolTduDq",
+          "name": "Riddhi Siddhi Ganesh Murti",
+          "price": 3150,
+          "quantity": 1,
+          "category": "Ganesh Ji"
+        }
+      ],
+      "total": 3150,
+      "address": "rajawaton ka chawk, Amer, Mehendi ka bass, Jaipur\nAmber fort, Jaipur - 302028",
+      "phone": "6378222178",
+      "paymentMethod": "Cash on Delivery",
+      "status": "Cancelled",
+      "createdAt": "2026-08-19T07:06:31.338Z",
+      "cancelledAt": "2026-08-19T07:31:54.724Z",
+      "updatedAt": "2026-08-19T07:31:54.724Z"
     },
     {
-      "id": "ryqVxjT7yu",
-      "category": "Krishna Ji",
-      "name": "Radha Krishna Jodi",
-      "price": 9499,
-      "weight": "820g",
-      "height": "7 inch pair",
-      "description": "Radha and Krishna together beneath a silver kadamba arch, a treasured wedding gift.",
-      "inStock": true,
-      "createdAt": "2026-07-21T19:36:16.397Z"
+      "id": "IsdOd61S4x",
+      "userId": "TTehCP5KN2",
+      "customer": {
+        "userId": "TTehCP5KN2",
+        "name": "Lakshay Bhatt",
+        "email": "lakshaybhatt08@gmail.com",
+        "phone": "6378222178",
+        "alternatePhone": ""
+      },
+      "items": [
+        {
+          "productId": "pBLbLCPs3d",
+          "name": "Kamal Aasan Lakshmi Murti",
+          "price": 20390,
+          "quantity": 1,
+          "category": "Lakshmi Ji",
+          "image": "/images/devotion/lakshmi.png"
+        }
+      ],
+      "total": 20390,
+      "address": "rajawaton ka chawk, Amer, Mehendi ka bass, Jaipur\nAmber fort, Jaipur, Rajasthan, 302028, India",
+      "shippingAddress": {
+        "street": "rajawaton ka chawk, Amer, Mehendi ka bass, Jaipur\nAmber fort",
+        "city": "Jaipur",
+        "state": "Rajasthan",
+        "zipCode": "302028",
+        "country": "India"
+      },
+      "phone": "6378222178",
+      "alternatePhone": "",
+      "deliveryInstructions": "",
+      "paymentMethod": "COD",
+      "status": "Placed",
+      "createdAt": "2026-08-19T07:32:49.381Z",
+      "updatedAt": "2026-08-19T07:32:49.381Z"
+    },
+    {
+      "id": "6nXv_LL5i0",
+      "userId": "W-VQP-tgod",
+      "customer": {
+        "userId": "W-VQP-tgod",
+        "name": "Amit ",
+        "email": "jha01amit@gmail.com",
+        "phone": "8949286898",
+        "alternatePhone": ""
+      },
+      "items": [
+        {
+          "productId": "fIYolTduDq",
+          "name": "Riddhi Siddhi Ganesh Murti",
+          "price": 3150,
+          "quantity": 1,
+          "category": "Ganesh Ji",
+          "image": "/images/devotion/ganesh.webp"
+        }
+      ],
+      "total": 3150,
+      "address": "rajawaton ka chawk, Amer, Mehendi ka bass, Jaipur\nAmber fort, Jaipur, Rajasthan, 302028, india",
+      "shippingAddress": {
+        "street": "rajawaton ka chawk, Amer, Mehendi ka bass, Jaipur\nAmber fort",
+        "city": "Jaipur",
+        "state": "Rajasthan",
+        "zipCode": "302028",
+        "country": "india"
+      },
+      "phone": "8949286898",
+      "alternatePhone": "",
+      "deliveryInstructions": "",
+      "paymentMethod": "COD",
+      "status": "Placed",
+      "createdAt": "2026-08-19T08:04:48.345Z",
+      "updatedAt": "2026-08-19T08:04:48.521Z"
     }
-  ],
-  "orders": []
+  ]
 }

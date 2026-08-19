@@ -30,20 +30,108 @@ const CATEGORIES = [
   },
   {
     name: 'Krishnaleela Clock',
-    tag: 'ह',
-    blurb: 'Strength, standing guard.',
+    tag: 'क',
+    blurb: 'Divine time, eternal stories.',
     image: '/images/devotion/ghadi.png',
     video: '/images/devotion/clockr.mp4'
   },
   {
     name: 'Peacock',
-    tag: 'श',
+    tag: 'म',
     blurb: 'Stillness, in silver.',
     image: '/images/devotion/mor.png',
     video: '/images/devotion/morr.mp4'
   }
 ];
 
+
+/* ============================================================
+   FEATURED CATEGORY ORDER
+   ============================================================
+
+   We deliberately keep only ONE product from each category
+   inside the Featured Edit.
+
+   This prevents:
+
+   Cow & Calf
+   Candle Stand
+   Shankh
+   Swan
+   Photo Frame
+
+   from appearing as duplicate products in Featured Edit.
+   ============================================================ */
+
+const FEATURED_CATEGORY_ORDER = [
+  'Kaamdhenu',
+  'Candle Stand',
+  'Shankh',
+  'Swan',
+  'Photo Frame'
+];
+
+
+/* ============================================================
+   NORMALIZE CATEGORY
+   ============================================================ */
+
+const normalizeCategory = (value) => {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
+};
+
+
+/* ============================================================
+   GET FEATURED PRODUCTS
+   ============================================================
+
+   Rules:
+
+   1. Only one product from each category.
+   2. Category order is controlled by
+      FEATURED_CATEGORY_ORDER.
+   3. If a category has no product, it is skipped.
+   4. Duplicate product IDs are never added.
+   ============================================================ */
+
+const getFeaturedProducts = (allProducts) => {
+  if (!Array.isArray(allProducts)) {
+    return [];
+  }
+
+  const selectedProducts = [];
+  const usedProductIds = new Set();
+
+  FEATURED_CATEGORY_ORDER.forEach((categoryName) => {
+    const targetCategory = normalizeCategory(categoryName);
+
+    const matchingProduct = allProducts.find((product) => {
+      if (!product || !product.id) {
+        return false;
+      }
+
+      if (usedProductIds.has(product.id)) {
+        return false;
+      }
+
+      return normalizeCategory(product.category) === targetCategory;
+    });
+
+    if (matchingProduct) {
+      selectedProducts.push(matchingProduct);
+      usedProductIds.add(matchingProduct.id);
+    }
+  });
+
+  return selectedProducts;
+};
+
+
+/* ============================================================
+   HOME PAGE
+   ============================================================ */
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -52,20 +140,67 @@ export default function Home() {
 
   /* ==========================================================
      LOAD FEATURED PRODUCTS
-  ========================================================== */
+     ========================================================== */
 
   useEffect(() => {
-    api
-      .get('/products')
-      .then(({ products }) => {
-        setProducts(products.slice(0, 6));
-      })
-      .catch(() => {})
-      .finally(() => {
-        setLoading(false);
-      });
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      try {
+        const response = await api.get('/products');
+
+        const allProducts = Array.isArray(response?.products)
+          ? response.products
+          : [];
+
+        /*
+         * ------------------------------------------------------
+         * FEATURED EDIT
+         * ------------------------------------------------------
+         *
+         * We DO NOT simply display the first four products.
+         *
+         * Instead:
+         *
+         * Cow & Calf      → one product
+         * Candle Stand    → one product
+         * Shankh          → one product
+         * Swan            → one product
+         * Photo Frame     → one product
+         *
+         * Therefore the same category cannot fill multiple
+         * Featured Edit cards.
+         */
+
+        const featuredProducts = getFeaturedProducts(allProducts);
+
+        if (isMounted) {
+          setProducts(featuredProducts);
+        }
+      } catch (error) {
+        console.error('Failed to load featured products:', error);
+
+        if (isMounted) {
+          setProducts([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+
+  /* ==========================================================
+     RETURN
+     ========================================================== */
 
   return (
     <div className="home-page">
@@ -152,7 +287,7 @@ export default function Home() {
           ================================================== */}
 
           <h1 className="hero__title">
-            Astha
+            Aastha
           </h1>
 
 
@@ -228,8 +363,8 @@ export default function Home() {
 
         </motion.div>
 
-      </section>
 
+      </section>
 
 
       {/* =====================================================
@@ -267,6 +402,7 @@ export default function Home() {
               }}
             >
 
+
               {/* =================================================
                   3D DEVOTION FLIP CARD
 
@@ -285,6 +421,7 @@ export default function Home() {
                 video={cat.video}
               />
 
+
             </Link>
 
           ))}
@@ -294,7 +431,6 @@ export default function Home() {
 
 
       </section>
-
 
 
       {/* =====================================================
@@ -327,18 +463,26 @@ export default function Home() {
             label="Curating the collection..."
           />
 
+        ) : products.length === 0 ? (
+
+          <p className="empty-state">
+            No featured products available yet.
+          </p>
+
         ) : (
 
           <div className="product-grid">
 
-            {products.map((p) => (
+
+            {products.map((product) => (
 
               <ProductCard
-                key={p.id}
-                product={p}
+                key={product.id}
+                product={product}
               />
 
             ))}
+
 
           </div>
 
@@ -351,6 +495,7 @@ export default function Home() {
 
         <div className="featured__cta">
 
+
           <Link
             to="/shop"
             className="btn btn--silver-outline"
@@ -358,11 +503,11 @@ export default function Home() {
             View Full Collection
           </Link>
 
+
         </div>
 
 
       </section>
-
 
 
       {/* =====================================================
