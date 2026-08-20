@@ -1,8 +1,22 @@
 import { Link } from 'react-router-dom';
-import { Instagram, MessageCircle } from 'lucide-react';
+import {
+  Instagram,
+  MessageCircle,
+  Mail,
+  Phone
+} from 'lucide-react';
 
-const INSTAGRAM_URL = 'https://www.instagram.com/_aastha__aa?igsh=MWVnd3NwZXI5NTZsNw==&utm_source=ig_contact_invite';
-const WHATSAPP_URL = 'https://wa.me/918829841467';
+const INSTAGRAM_URL =
+  'https://www.instagram.com/_aastha__aa/';
+
+const WHATSAPP_URL =
+  'https://wa.me/918829841467';
+
+const EMAIL_ADDRESS =
+  'info@aasthasilver.in';
+
+const PHONE_NUMBER =
+  '+918829841467';
 
 export default function Footer() {
   return (
@@ -18,6 +32,7 @@ export default function Footer() {
         {/* =========================
             BRAND
         ========================== */}
+
         <div className="footer__brand">
 
           <Link
@@ -39,11 +54,14 @@ export default function Footer() {
 
           <div className="footer__socials">
 
+            {/* INSTAGRAM */}
+
             <a
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram"
+              aria-label="Follow Astha on Instagram"
+              title="Instagram"
             >
               <Instagram
                 size={18}
@@ -51,11 +69,15 @@ export default function Footer() {
               />
             </a>
 
+
+            {/* WHATSAPP */}
+
             <a
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="WhatsApp"
+              aria-label="Contact Astha on WhatsApp"
+              title="WhatsApp"
             >
               <MessageCircle
                 size={18}
@@ -71,6 +93,7 @@ export default function Footer() {
         {/* =========================
             EXPLORE
         ========================== */}
+
         <div className="footer__col">
 
           <h4>Explore</h4>
@@ -105,6 +128,7 @@ export default function Footer() {
         {/* =========================
             ASTHA
         ========================== */}
+
         <div className="footer__col">
 
           <h4>Astha</h4>
@@ -121,23 +145,60 @@ export default function Footer() {
             My Account
           </Link>
 
+          <Link to="/terms-and-policies">
+            Terms &amp; Policies
+          </Link>
+
         </div>
 
 
         {/* =========================
             REACH US
         ========================== */}
+
         <div className="footer__col">
 
           <h4>Reach Us</h4>
 
-          <p>
-            +91 88298 41467
-          </p>
+          {/* PHONE */}
+
+          <a
+            href={`tel:${PHONE_NUMBER}`}
+            className="footer__contact-link"
+            aria-label="Call Astha"
+          >
+            <Phone
+              size={15}
+              strokeWidth={1.5}
+            />
+
+            <span>
+              +91 88298 41467
+            </span>
+          </a>
+
 
           <p>
             Jaipur, Rajasthan
           </p>
+
+
+          {/* EMAIL */}
+
+          <a
+            href={`mailto:${EMAIL_ADDRESS}`}
+            className="footer__contact-link footer__email-link"
+            aria-label="Email Astha"
+          >
+            <Mail
+              size={15}
+              strokeWidth={1.5}
+            />
+
+            <span>
+              {EMAIL_ADDRESS}
+            </span>
+          </a>
 
         </div>
 
@@ -147,6 +208,7 @@ export default function Footer() {
       {/* =========================
           FOOTER BOTTOM
       ========================== */}
+
       <div className="footer__bottom">
 
         <p>

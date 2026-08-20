@@ -19,7 +19,7 @@ export default function Checkout() {
     city: '',
     state: '',
     pincode: '',
-    country: 'United States',
+    country: 'India',
 
     deliveryInstructions: '',
 

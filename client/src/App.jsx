@@ -1,5 +1,9 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import {
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom';
 
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -21,11 +25,39 @@ const Signup = lazy(() => import('./pages/Signup.jsx'));
 const Account = lazy(() => import('./pages/Account.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
+const TermsAndPolicies = lazy(
+  () => import('./pages/TermsAndPolicies.jsx')
+);
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+
+// =============================================================
+// SMOOTH PAGE SCROLL
+// =============================================================
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth',
+    });
+  }, [pathname]);
+
+  return null;
+}
+
+// =============================================================
+// APP
+// =============================================================
 
 export default function App() {
   return (
     <div className="app-shell">
+
+      <ScrollToTop />
+
       <Navbar />
 
       <main>
@@ -35,20 +67,51 @@ export default function App() {
           }
         >
           <Routes>
-            <Route path="/" element={<Home />} />
 
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/:category" element={<Shop />} />
+            {/* =================================================
+                HOME
+            ================================================= */}
+
+            <Route
+              path="/"
+              element={<Home />}
+            />
+
+            {/* =================================================
+                SHOP
+            ================================================= */}
+
+            <Route
+              path="/shop"
+              element={<Shop />}
+            />
+
+            <Route
+              path="/shop/:category"
+              element={<Shop />}
+            />
+
+            {/* =================================================
+                PRODUCT
+            ================================================= */}
 
             <Route
               path="/product/:id"
               element={<ProductDetail />}
             />
 
+            {/* =================================================
+                CART
+            ================================================= */}
+
             <Route
               path="/cart"
               element={<Cart />}
             />
+
+            {/* =================================================
+                INFORMATION
+            ================================================= */}
 
             <Route
               path="/about"
@@ -61,6 +124,15 @@ export default function App() {
             />
 
             <Route
+              path="/terms-and-policies"
+              element={<TermsAndPolicies />}
+            />
+
+            {/* =================================================
+                AUTH
+            ================================================= */}
+
+            <Route
               path="/login"
               element={<Login />}
             />
@@ -69,6 +141,10 @@ export default function App() {
               path="/signup"
               element={<Signup />}
             />
+
+            {/* =================================================
+                CHECKOUT
+            ================================================= */}
 
             <Route
               path="/checkout"
@@ -79,6 +155,10 @@ export default function App() {
               }
             />
 
+            {/* =================================================
+                ORDER SUCCESS
+            ================================================= */}
+
             <Route
               path="/order-success/:id"
               element={
@@ -87,6 +167,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* =================================================
+                ACCOUNT
+            ================================================= */}
 
             <Route
               path="/account"
@@ -97,16 +181,23 @@ export default function App() {
               }
             />
 
+            {/* =================================================
+                404
+            ================================================= */}
+
             <Route
               path="*"
               element={<NotFound />}
             />
+
           </Routes>
         </Suspense>
       </main>
 
       <Footer />
+
       <WhatsAppButton />
+
     </div>
   );
 }

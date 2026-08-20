@@ -1,0 +1,200 @@
+/* =========================================================
+   TERMS & POLICIES
+========================================================= */
+
+.terms-page {
+  min-height: 100vh;
+  background: #08090a;
+  color: #e8e8e8;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.terms-hero {
+  padding: 150px 24px 90px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.055),
+      transparent 45%
+    );
+}
+
+.terms-hero__inner {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.terms-eyebrow {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #8f8f8f;
+}
+
+.terms-hero h1 {
+  margin: 0;
+  font-size: clamp(42px, 6vw, 76px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  color: #f2f2f2;
+}
+
+.terms-hero p {
+  max-width: 620px;
+  margin: 24px auto 0;
+  color: #969696;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.terms-content {
+  width: min(100% - 48px, 1000px);
+  margin: 0 auto;
+  padding: 90px 0 120px;
+}
+
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+.terms-section {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 34px;
+  padding: 55px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.terms-section:first-child {
+  padding-top: 0;
+}
+
+.terms-number {
+  color: #666;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  padding-top: 7px;
+}
+
+.terms-section h2 {
+  margin: 0 0 18px;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #ededed;
+}
+
+.terms-section p {
+  max-width: 760px;
+  margin: 0 0 16px;
+  color: #999;
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.terms-section strong {
+  color: #d9d9d9;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   HIGHLIGHT
+========================================================= */
+
+.terms-highlight {
+  max-width: 760px;
+  margin-top: 28px;
+  padding: 22px 24px;
+  border-left: 2px solid #8e8e8e;
+  background: rgba(255, 255, 255, 0.035);
+  color: #a8a8a8;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.terms-highlight strong {
+  margin-right: 4px;
+}
+
+
+/* =========================================================
+   EMAIL
+========================================================= */
+
+.terms-email {
+  display: inline-block;
+  margin-top: 8px;
+  color: #dedede;
+  font-size: 17px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.terms-email:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .terms-hero {
+    padding: 120px 20px 70px;
+  }
+
+  .terms-hero p {
+    font-size: 15px;
+  }
+
+  .terms-content {
+    width: min(100% - 36px, 1000px);
+    padding: 65px 0 80px;
+  }
+
+  .terms-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 40px 0;
+  }
+
+  .terms-number {
+    padding-top: 0;
+    font-size: 11px;
+  }
+
+  .terms-section h2 {
+    font-size: 23px;
+  }
+
+  .terms-section p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .terms-highlight {
+    padding: 18px;
+    font-size: 14px;
+  }
+}
