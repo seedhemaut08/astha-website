@@ -1,42 +1,34 @@
 import { Router } from 'express';
 import { nanoid } from 'nanoid';
-import { db } from '../db.js';
+import { getCollection } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-// ============================================================
-// PLACE ORDER
-// ============================================================
+/* ============================================================
+   PLACE ORDER
+   ============================================================ */
 
 router.post('/', requireAuth, async (req, res) => {
   try {
     const {
       items,
-
-      // Customer information
       fullName,
       email,
       phone,
       alternatePhone,
-
-      // Address
       address,
       shippingAddress,
-
-      // Delivery
       notes,
       deliveryInstructions,
-
-      // Payment
       paymentMethod
     } = req.body;
 
-    // ==========================================================
-    // BASIC VALIDATION
-    // ==========================================================
+    /* ==========================================================
+       BASIC VALIDATION
+       ========================================================== */
 
-    if (!items || !items.length) {
+    if (!items || !Array.isArray(items) || !items.length) {
       return res.status(400).json({
         error: 'Your cart is empty.'
       });
@@ -48,49 +40,53 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
-    // ==========================================================
-    // READ DATABASE
-    // ==========================================================
+    const users = getCollection('users');
+    const products = getCollection('products');
+    const orders = getCollection('orders');
 
-    await db.read();
+    /* ==========================================================
+       GET USER DETAILS
+       ========================================================== */
 
-    // ==========================================================
-    // GET USER DETAILS
-    // ==========================================================
+    const user = await users.findOne({
+      id: req.user.id
+    });
 
-    const user = db.data.users?.find(
-      user => user.id === req.user.id
-    );
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found.'
+      });
+    }
 
-    // ==========================================================
-    // CUSTOMER SNAPSHOT
-    // ==========================================================
+    /* ==========================================================
+       CUSTOMER SNAPSHOT
+       ========================================================== */
 
     const customer = {
       userId: req.user.id,
 
       name:
         fullName ||
-        user?.name ||
+        user.name ||
         '',
 
       email:
         email ||
-        user?.email ||
+        user.email ||
         '',
 
       phone:
         phone ||
-        user?.phone ||
+        user.phone ||
         '',
 
       alternatePhone:
         alternatePhone || ''
     };
 
-    // ==========================================================
-    // SHIPPING ADDRESS SNAPSHOT
-    // ==========================================================
+    /* ==========================================================
+       SHIPPING ADDRESS SNAPSHOT
+       ========================================================== */
 
     const finalShippingAddress = {
       street:
@@ -115,87 +111,98 @@ router.post('/', requireAuth, async (req, res) => {
         ''
     };
 
-    // ==========================================================
-    // CALCULATE ORDER TOTAL
-    // ==========================================================
+    /* ==========================================================
+       CALCULATE ORDER
+       ========================================================== */
 
     let total = 0;
 
-    const orderItems = items
-      .map(item => {
+    const orderItems = [];
 
-        const product = db.data.products.find(
-          product => product.id === item.productId
+    for (const item of items) {
+
+      const product = await products.findOne({
+        id: item.productId
+      });
+
+      if (!product) {
+        continue;
+      }
+
+      const qty =
+        Number(item.quantity) > 0
+          ? Number(item.quantity)
+          : 1;
+
+      /* ========================================================
+         STOCK CHECK
+         ======================================================== */
+
+      if (
+        product.stock !== undefined &&
+        Number(product.stock) < qty
+      ) {
+        throw new Error(
+          `${product.name} does not have enough stock.`
         );
+      }
 
-        if (!product) {
-          return null;
-        }
+      /* ========================================================
+         TOTAL
+         ======================================================== */
 
-        // ======================================================
-        // QUANTITY
-        // ======================================================
+      total +=
+        Number(product.price) * qty;
 
-        const qty =
-          Number(item.quantity) > 0
-            ? Number(item.quantity)
-            : 1;
+      /* ========================================================
+         REDUCE STOCK
+         ======================================================== */
 
-        // ======================================================
-        // STOCK CHECK
-        // ======================================================
+      if (product.stock !== undefined) {
 
-        if (
-          product.stock !== undefined &&
-          Number(product.stock) < qty
-        ) {
-          throw new Error(
-            `${product.name} does not have enough stock.`
-          );
-        }
+        const newStock =
+          Number(product.stock) - qty;
 
-        // ======================================================
-        // TOTAL
-        // ======================================================
+        await products.updateOne(
+          {
+            id: product.id
+          },
+          {
+            $set: {
+              stock: newStock,
+              updatedAt: new Date()
+            }
+          }
+        );
+      }
 
-        total +=
-          Number(product.price) * qty;
+      /* ========================================================
+         ORDER ITEM SNAPSHOT
+         ======================================================== */
 
-        // ======================================================
-        // REDUCE STOCK
-        // ======================================================
+      orderItems.push({
+        productId: product.id,
 
-        if (product.stock !== undefined) {
-          product.stock =
-            Number(product.stock) - qty;
-        }
+        name: product.name,
 
-        // ======================================================
-        // ORDER ITEM
-        // ======================================================
+        price:
+          Number(product.price),
 
-        return {
-          productId: product.id,
+        quantity: qty,
 
-          name: product.name,
+        category:
+          product.category || '',
 
-          price: Number(product.price),
+        image:
+          product.image ||
+          product.imageUrl ||
+          ''
+      });
+    }
 
-          quantity: qty,
-
-          category: product.category || '',
-
-          image:
-            product.image ||
-            product.imageUrl ||
-            ''
-        };
-      })
-      .filter(Boolean);
-
-    // ==========================================================
-    // VALID PRODUCTS CHECK
-    // ==========================================================
+    /* ==========================================================
+       VALID PRODUCTS CHECK
+       ========================================================== */
 
     if (!orderItems.length) {
       return res.status(400).json({
@@ -203,18 +210,15 @@ router.post('/', requireAuth, async (req, res) => {
       });
     }
 
-    // ==========================================================
-    // CREATE ORDER
-    // ==========================================================
+    /* ==========================================================
+       CREATE ORDER
+       ========================================================== */
+
+    const now = new Date();
 
     const order = {
 
-      // Unique order ID
       id: nanoid(10),
-
-      // ========================================================
-      // CUSTOMER
-      // ========================================================
 
       userId: req.user.id,
 
@@ -222,86 +226,54 @@ router.post('/', requireAuth, async (req, res) => {
         ...customer
       },
 
-      // ========================================================
-      // PRODUCTS
-      // ========================================================
-
       items: orderItems,
 
-      // ========================================================
-      // PRICE
-      // ========================================================
-
-      total: Number(total.toFixed(2)),
-
-      // ========================================================
-      // ADDRESS
-      // ========================================================
+      total:
+        Number(total.toFixed(2)),
 
       address,
 
-      shippingAddress: finalShippingAddress,
+      shippingAddress:
+        finalShippingAddress,
 
-      // ========================================================
-      // CONTACT
-      // ========================================================
-
-      phone: phone,
+      phone,
 
       alternatePhone:
         alternatePhone || '',
-
-      // ========================================================
-      // DELIVERY NOTES
-      // ========================================================
 
       deliveryInstructions:
         deliveryInstructions ||
         notes ||
         '',
 
-      // ========================================================
-      // PAYMENT
-      // ========================================================
-
       paymentMethod:
-        paymentMethod || 'COD',
+        paymentMethod ||
+        'COD',
 
-      // ========================================================
-      // ORDER STATUS
-      // ========================================================
-
-      status: 'Placed',
-
-      // ========================================================
-      // TIMESTAMPS
-      // ========================================================
+      status:
+        'Placed',
 
       createdAt:
-        new Date().toISOString(),
+        now,
 
       updatedAt:
-        new Date().toISOString()
+        now
     };
 
-    // ==========================================================
-    // SAVE ORDER
-    // ==========================================================
+    /* ==========================================================
+       SAVE ORDER
+       ========================================================== */
 
-    db.data.orders.push(order);
+    await orders.insertOne(order);
 
-    // ==========================================================
-    // SAVE DATABASE
-    // ==========================================================
-
-    await db.write();
-
-    // ==========================================================
-    // RESPONSE
-    // ==========================================================
+    /* ==========================================================
+       RESPONSE
+       ========================================================== */
 
     return res.status(201).json({
-      message: 'Order placed successfully.',
+      message:
+        'Order placed successfully.',
+
       order
     });
 
@@ -321,29 +293,29 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 
-// ============================================================
-// GET MY ORDERS
-// ============================================================
+/* ============================================================
+   GET MY ORDERS
+   ============================================================ */
 
 router.get('/my', requireAuth, async (req, res) => {
+
   try {
 
-    await db.read();
-
     const orders =
-      db.data.orders
-        .filter(
-          order =>
-            order.userId === req.user.id
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt) -
-            new Date(a.createdAt)
-        );
+      getCollection('orders');
+
+    const userOrders =
+      await orders
+        .find({
+          userId: req.user.id
+        })
+        .sort({
+          createdAt: -1
+        })
+        .toArray();
 
     return res.json({
-      orders
+      orders: userOrders
     });
 
   } catch (error) {
@@ -362,91 +334,137 @@ router.get('/my', requireAuth, async (req, res) => {
 });
 
 
-// ============================================================
-// CANCEL MY ORDER
-// ============================================================
+/* ============================================================
+   CANCEL MY ORDER
+   ============================================================ */
 
 router.post('/:id/cancel', requireAuth, async (req, res) => {
+
   try {
 
-    await db.read();
+    const orders =
+      getCollection('orders');
 
-    // ==========================================================
-    // FIND CUSTOMER'S OWN ORDER
-    // ==========================================================
+    const products =
+      getCollection('products');
 
-    const order = db.data.orders.find(
-      order =>
-        order.id === req.params.id &&
-        order.userId === req.user.id
-    );
+    /* ========================================================
+       FIND CUSTOMER'S OWN ORDER
+       ======================================================== */
+
+    const order =
+      await orders.findOne({
+        id: req.params.id,
+        userId: req.user.id
+      });
 
     if (!order) {
+
       return res.status(404).json({
-        error: 'Order not found.'
+        error:
+          'Order not found.'
       });
     }
 
-    // ==========================================================
-    // ONLY PLACED ORDERS CAN BE CANCELLED
-    // ==========================================================
+    /* ========================================================
+       ONLY PLACED ORDERS CAN BE CANCELLED
+       ======================================================== */
 
     if (order.status !== 'Placed') {
+
       return res.status(400).json({
         error:
           `This order cannot be cancelled because it is already ${order.status}.`
       });
     }
 
-    // ==========================================================
-    // RESTORE STOCK
-    // ==========================================================
+    /* ========================================================
+       RESTORE STOCK
+       ======================================================== */
 
     if (Array.isArray(order.items)) {
 
-      order.items.forEach(item => {
+      for (const item of order.items) {
 
-        const product = db.data.products.find(
-          product =>
-            product.id === item.productId
-        );
+        if (!item.productId) {
+          continue;
+        }
+
+        const product =
+          await products.findOne({
+            id: item.productId
+          });
 
         if (
           product &&
           product.stock !== undefined
         ) {
-          product.stock =
-            Number(product.stock) +
-            Number(item.quantity || 1);
+
+          await products.updateOne(
+            {
+              id: item.productId
+            },
+            {
+              $set: {
+                stock:
+                  Number(product.stock) +
+                  Number(item.quantity || 1),
+
+                updatedAt:
+                  new Date()
+              }
+            }
+          );
         }
-      });
+      }
     }
 
-    // ==========================================================
-    // UPDATE ORDER STATUS
-    // ==========================================================
+    /* ========================================================
+       UPDATE ORDER STATUS
+       ======================================================== */
 
-    order.status = 'Cancelled';
+    const now =
+      new Date();
 
-    order.cancelledAt =
-      new Date().toISOString();
+    await orders.updateOne(
+      {
+        id: req.params.id,
+        userId: req.user.id
+      },
+      {
+        $set: {
+          status:
+            'Cancelled',
 
-    order.updatedAt =
-      new Date().toISOString();
+          cancelledAt:
+            now,
 
-    // ==========================================================
-    // SAVE DATABASE
-    // ==========================================================
+          updatedAt:
+            now
+        }
+      }
+    );
 
-    await db.write();
+    /* ========================================================
+       GET UPDATED ORDER
+       ======================================================== */
 
-    // ==========================================================
-    // RESPONSE
-    // ==========================================================
+    const updatedOrder =
+      await orders.findOne({
+        id: req.params.id,
+        userId: req.user.id
+      });
+
+    /* ========================================================
+       RESPONSE
+       ======================================================== */
 
     return res.json({
-      message: 'Order cancelled successfully.',
-      order
+      message:
+        'Order cancelled successfully.',
+
+      order:
+        updatedOrder
     });
 
   } catch (error) {
@@ -465,25 +483,28 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
 });
 
 
-// ============================================================
-// GET SINGLE ORDER
-// ============================================================
+/* ============================================================
+   GET SINGLE ORDER
+   ============================================================ */
 
 router.get('/:id', requireAuth, async (req, res) => {
+
   try {
 
-    await db.read();
+    const orders =
+      getCollection('orders');
 
     const order =
-      db.data.orders.find(
-        order =>
-          order.id === req.params.id &&
-          order.userId === req.user.id
-      );
+      await orders.findOne({
+        id: req.params.id,
+        userId: req.user.id
+      });
 
     if (!order) {
+
       return res.status(404).json({
-        error: 'Order not found.'
+        error:
+          'Order not found.'
       });
     }
 
