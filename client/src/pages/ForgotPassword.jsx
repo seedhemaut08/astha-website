@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-const API_BASE =
-  import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { api } from '../api.js';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -25,7 +23,6 @@ export default function ForgotPassword() {
 
   const [loading, setLoading] = useState(false);
 
-
   /* =========================================================
      SEND OTP
   ========================================================= */
@@ -44,43 +41,28 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/auth/forgot-password`,
+      const data = await api.post(
+        '/auth/forgot-password',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim()
-          })
+          email: email.trim(),
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || 'Unable to send OTP.'
-        );
-      }
-
       setMessage(
+        data?.message ||
         'OTP has been sent to your registered email address.'
       );
 
       setStep('otp');
-
     } catch (err) {
       setError(
-        err.message || 'Unable to send OTP.'
+        err?.message ||
+        'Unable to send OTP. Please try again.'
       );
-
     } finally {
       setLoading(false);
     }
   }
-
 
   /* =========================================================
      VERIFY OTP
@@ -105,29 +87,15 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/auth/forgot-password/verify-otp`,
+      const data = await api.post(
+        '/auth/forgot-password/verify-otp',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            otp: otp.trim()
-          })
+          email: email.trim(),
+          otp: otp.trim(),
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || 'Invalid OTP.'
-        );
-      }
-
-      if (!data.resetToken) {
+      if (!data?.resetToken) {
         throw new Error(
           'Password reset session could not be created.'
         );
@@ -140,17 +108,15 @@ export default function ForgotPassword() {
       );
 
       setStep('password');
-
     } catch (err) {
       setError(
-        err.message || 'Unable to verify OTP.'
+        err?.message ||
+        'Unable to verify OTP.'
       );
-
     } finally {
       setLoading(false);
     }
   }
-
 
   /* =========================================================
      RESET PASSWORD
@@ -191,30 +157,17 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/auth/reset-password`,
+      const data = await api.post(
+        '/auth/reset-password',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            resetToken,
-            newPassword
-          })
+          email: email.trim(),
+          resetToken,
+          newPassword,
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || 'Unable to reset password.'
-        );
-      }
-
       setMessage(
+        data?.message ||
         'Password changed successfully. Redirecting to Sign In...'
       );
 
@@ -224,14 +177,13 @@ export default function ForgotPassword() {
 
     } catch (err) {
       setError(
-        err.message || 'Unable to reset password.'
+        err?.message ||
+        'Unable to reset password.'
       );
-
     } finally {
       setLoading(false);
     }
   }
-
 
   /* =========================================================
      GO BACK
@@ -259,12 +211,10 @@ export default function ForgotPassword() {
     navigate('/login');
   }
 
-
   return (
     <div className="auth-page">
 
       <div className="auth-card">
-
 
         {/* =====================================================
             EMAIL STEP
@@ -305,7 +255,7 @@ export default function ForgotPassword() {
                 <input
                   type="email"
                   value={email}
-                  onChange={e =>
+                  onChange={(e) =>
                     setEmail(e.target.value)
                   }
                   placeholder="Enter your email"
@@ -335,7 +285,6 @@ export default function ForgotPassword() {
             </p>
           </>
         )}
-
 
         {/* =====================================================
             OTP STEP
@@ -380,7 +329,7 @@ export default function ForgotPassword() {
                 <input
                   type="text"
                   value={otp}
-                  onChange={e =>
+                  onChange={(e) =>
                     setOtp(
                       e.target.value
                         .replace(/\D/g, '')
@@ -416,7 +365,6 @@ export default function ForgotPassword() {
             </button>
           </>
         )}
-
 
         {/* =====================================================
             NEW PASSWORD STEP
@@ -461,7 +409,7 @@ export default function ForgotPassword() {
                 <div
                   style={{
                     position: 'relative',
-                    width: '100%'
+                    width: '100%',
                   }}
                 >
 
@@ -472,7 +420,7 @@ export default function ForgotPassword() {
                         : 'password'
                     }
                     value={newPassword}
-                    onChange={e =>
+                    onChange={(e) =>
                       setNewPassword(e.target.value)
                     }
                     placeholder="Enter new password"
@@ -480,7 +428,7 @@ export default function ForgotPassword() {
                     minLength={6}
                     required
                     style={{
-                      paddingRight: '78px'
+                      paddingRight: '78px',
                     }}
                   />
 
@@ -488,7 +436,7 @@ export default function ForgotPassword() {
                     type="button"
                     onClick={() =>
                       setShowNewPassword(
-                        prev => !prev
+                        (prev) => !prev
                       )
                     }
                     aria-label={
@@ -509,7 +457,7 @@ export default function ForgotPassword() {
                       fontSize: '14px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      padding: '6px'
+                      padding: '6px',
                     }}
                   >
                     {showNewPassword
@@ -521,7 +469,6 @@ export default function ForgotPassword() {
 
               </label>
 
-
               {/* =================================================
                   CONFIRM PASSWORD
               ================================================== */}
@@ -532,7 +479,7 @@ export default function ForgotPassword() {
                 <div
                   style={{
                     position: 'relative',
-                    width: '100%'
+                    width: '100%',
                   }}
                 >
 
@@ -543,7 +490,7 @@ export default function ForgotPassword() {
                         : 'password'
                     }
                     value={confirmPassword}
-                    onChange={e =>
+                    onChange={(e) =>
                       setConfirmPassword(
                         e.target.value
                       )
@@ -553,7 +500,7 @@ export default function ForgotPassword() {
                     minLength={6}
                     required
                     style={{
-                      paddingRight: '78px'
+                      paddingRight: '78px',
                     }}
                   />
 
@@ -561,7 +508,7 @@ export default function ForgotPassword() {
                     type="button"
                     onClick={() =>
                       setShowConfirmPassword(
-                        prev => !prev
+                        (prev) => !prev
                       )
                     }
                     aria-label={
@@ -582,7 +529,7 @@ export default function ForgotPassword() {
                       fontSize: '14px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      padding: '6px'
+                      padding: '6px',
                     }}
                   >
                     {showConfirmPassword
@@ -593,7 +540,6 @@ export default function ForgotPassword() {
                 </div>
 
               </label>
-
 
               {/* =================================================
                   CREATE PASSWORD BUTTON
@@ -610,7 +556,6 @@ export default function ForgotPassword() {
               </button>
 
             </form>
-
 
             <button
               type="button"
