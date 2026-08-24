@@ -1,35 +1,97 @@
+/*
+=========================================================
+ASTHA SILVER DATABASE
+=========================================================
+
+MongoDB database connection and compatibility layer.
+
+IMPORTANT:
+
+The application must NOT load the entire database into
+memory during startup.
+
+Only the collections that are actually required are
+loaded when necessary.
+
+This keeps server startup fast and prevents large
+users/orders collections from blocking the application.
+
+The existing compatibility API is preserved:
+
+    db.read()
+    db.write()
+    db.data.users
+    db.data.products
+    db.data.orders
+
+MongoDB remains the source of truth.
+=========================================================
+*/
+
+
+/*
+=========================================================
+LOAD ENVIRONMENT VARIABLES
+=========================================================
+*/
+
 import 'dotenv/config';
+
+
+/*
+=========================================================
+DNS
+=========================================================
+*/
+
 import dns from 'node:dns';
-import { MongoClient } from 'mongodb';
-import { nanoid } from 'nanoid';
 
 
-/* ============================================================
-   DNS CONFIGURATION
-   ============================================================
+/*
+=========================================================
+MONGODB
+=========================================================
+*/
 
-   MongoDB Atlas uses an SRV connection string:
+import {
+  MongoClient,
+} from 'mongodb';
 
-   mongodb+srv://...
 
-   On the current network, Windows nslookup can resolve the
-   MongoDB SRV record correctly, but Node.js default DNS
-   resolution was returning:
+/*
+=========================================================
+ID GENERATOR
+=========================================================
+*/
 
-   querySrv ECONNREFUSED
+import {
+  nanoid,
+} from 'nanoid';
 
-   We therefore explicitly configure Node's DNS resolver
-   to use reliable public DNS servers before MongoClient
-   is created.
 
-   ============================================================ */
+/*
+=========================================================
+DNS CONFIGURATION
+=========================================================
+
+MongoDB Atlas uses an SRV connection string:
+
+mongodb+srv://...
+
+The application previously encountered DNS problems
+with Node.js SRV resolution.
+
+We therefore explicitly configure public DNS servers.
+=========================================================
+*/
 
 try {
 
   dns.setServers([
     '8.8.8.8',
-    '1.1.1.1'
+    '1.1.1.1',
   ]);
+
 
   console.log(
     '🌐 Node DNS servers configured:',
@@ -46,6 +108,12 @@ try {
 }
 
 
+/*
+=========================================================
+MONGODB URI
+=========================================================
+*/
+
 const uri =
   process.env.MONGODB_URI;
 
@@ -59,32 +127,61 @@ if (!uri) {
 }
 
 
-/* ============================================================
-   MONGODB CLIENT
-   ============================================================ */
+/*
+=========================================================
+MONGODB CLIENT
+=========================================================
+
+Short connection timeouts prevent a dead/unreachable
+MongoDB server from keeping requests waiting for a very
+long time.
+
+The HTTP server is started separately by index.js.
+=========================================================
+*/
 
 const client =
   new MongoClient(
     uri,
     {
       serverSelectionTimeoutMS:
-        15000,
+        5000,
 
       connectTimeoutMS:
-        15000,
+        5000,
 
       socketTimeoutMS:
-        30000
+        10000,
+
+      maxPoolSize:
+        10,
+
+      minPoolSize:
+        0,
+
+      retryWrites:
+        true,
+
+      retryReads:
+        true,
     }
   );
 
 
+/*
+=========================================================
+DATABASE REFERENCE
+=========================================================
+*/
+
 let database = null;
 
 
-/* ============================================================
-   DEFAULT DATA
-   ============================================================ */
+/*
+=========================================================
+DEFAULT DATA
+=========================================================
+*/
 
 const defaultData = {
 
@@ -92,14 +189,16 @@ const defaultData = {
 
   products: [],
 
-  orders: []
+  orders: [],
 
 };
 
 
-/* ============================================================
-   SEED PRODUCTS
-   ============================================================ */
+/*
+=========================================================
+SEED PRODUCTS
+=========================================================
+*/
 
 const seedProducts = [
 
@@ -122,8 +221,9 @@ const seedProducts = [
           '6 inch',
 
         desc:
-          'Hand-finished silver Ganesh idol seated on a lotus base, flanked by Riddhi and Siddhi, crafted for the home mandir.'
+          'Hand-finished silver Ganesh idol seated on a lotus base, flanked by Riddhi and Siddhi, crafted for the home mandir.',
       },
+
 
       {
         name:
@@ -139,8 +239,9 @@ const seedProducts = [
           '4.5 inch',
 
         desc:
-          'A playful Bal Ganesh murti with fine trunk detailing, ideal as a housewarming or wedding gift.'
+          'A playful Bal Ganesh murti with fine trunk detailing, ideal as a housewarming or wedding gift.',
       },
+
 
       {
         name:
@@ -156,11 +257,10 @@ const seedProducts = [
           '7 inch',
 
         desc:
-          'Rare five-faced Ganesh idol representing the five elements, finished with intricate mukut work.'
-      }
+          'Rare five-faced Ganesh idol representing the five elements, finished with intricate mukut work.',
+      },
 
-    ]
-
+    ],
   },
 
 
@@ -184,8 +284,9 @@ const seedProducts = [
           '6.5 inch',
 
         desc:
-          'Goddess Lakshmi seated on a full-bloom lotus, coins cascading from her palm, for prosperity and abundance.'
+          'Goddess Lakshmi seated on a full-bloom lotus, coins cascading from her palm, for prosperity and abundance.',
       },
+
 
       {
         name:
@@ -201,8 +302,9 @@ const seedProducts = [
           '6 inch pair',
 
         desc:
-          'The classic Diwali pairing — Lakshmi and Ganesh together on a single ornate silver platform.'
+          'The classic Diwali pairing — Lakshmi and Ganesh together on a single ornate silver platform.',
       },
+
 
       {
         name:
@@ -218,11 +320,10 @@ const seedProducts = [
           '6 inch',
 
         desc:
-          'Lakshmi flanked by two elephants performing abhishek, a symbol of royal fortune.'
-      }
+          'Lakshmi flanked by two elephants performing abhishek, a symbol of royal fortune.',
+      },
 
-    ]
-
+    ],
   },
 
 
@@ -246,8 +347,9 @@ const seedProducts = [
           '7 inch',
 
         desc:
-          'A powerful standing Hanuman idol with gada in hand, detailed armour and flowing angavastram.'
+          'A powerful standing Hanuman idol with gada in hand, detailed armour and flowing angavastram.',
       },
+
 
       {
         name:
@@ -263,8 +365,9 @@ const seedProducts = [
           '5.5 inch',
 
         desc:
-          'Hanuman ji in blessing posture, believed to remove obstacles and protect the household.'
+          'Hanuman ji in blessing posture, believed to remove obstacles and protect the household.',
       },
+
 
       {
         name:
@@ -280,11 +383,10 @@ const seedProducts = [
           '7.5 inch',
 
         desc:
-          'Five-faced Hanuman murti, an intricate and rare piece for dedicated devotees.'
-      }
+          'Five-faced Hanuman murti, an intricate and rare piece for dedicated devotees.',
+      },
 
-    ]
-
+    ],
   },
 
 
@@ -308,8 +410,9 @@ const seedProducts = [
           '6 inch group',
 
         desc:
-          'The complete Shiv family — Shiva, Parvati, Ganesh and Kartikeya — on one ornate base.'
+          'The complete Shiv family — Shiva, Parvati, Ganesh and Kartikeya — on one ornate base.',
       },
+
 
       {
         name:
@@ -325,8 +428,9 @@ const seedProducts = [
           '6 inch',
 
         desc:
-          'Lord Shiva in deep meditation, matted hair and trishul finely etched by hand.'
+          'Lord Shiva in deep meditation, matted hair and trishul finely etched by hand.',
       },
+
 
       {
         name:
@@ -342,11 +446,10 @@ const seedProducts = [
           '9 inch',
 
         desc:
-          'Shiva as Nataraja within a silver prabhavali ring, our most detailed showpiece.'
-      }
+          'Shiva as Nataraja within a silver prabhavali ring, our most detailed showpiece.',
+      },
 
-    ]
-
+    ],
   },
 
 
@@ -370,8 +473,9 @@ const seedProducts = [
           '6 inch',
 
         desc:
-          'Krishna playing the flute in classic tribhanga pose, peacock feather crown detailing.'
+          'Krishna playing the flute in classic tribhanga pose, peacock feather crown detailing.',
       },
+
 
       {
         name:
@@ -387,29 +491,31 @@ const seedProducts = [
           '7 inch pair',
 
         desc:
-          'Radha and Krishna together beneath a silver kadamba arch, a treasured wedding gift.'
-      }
+          'Radha and Krishna together beneath a silver kadamba arch, a treasured wedding gift.',
+      },
 
-    ]
-
-  }
+    ],
+  },
 
 ];
 
 
-/* ============================================================
-   DB COMPATIBILITY OBJECT
-   ============================================================
+/*
+=========================================================
+DB COMPATIBILITY OBJECT
+=========================================================
 
-   Existing routes can continue using:
+Existing routes can continue using:
 
-   db.read()
-   db.write()
-   db.data.users
-   db.data.products
-   db.data.orders
+    db.read()
+    db.write()
+    db.data.users
+    db.data.products
+    db.data.orders
 
-   ============================================================ */
+MongoDB remains the source of truth.
+=========================================================
+*/
 
 export const db = {
 
@@ -419,14 +525,24 @@ export const db = {
 
     products: [],
 
-    orders: []
+    orders: [],
 
   },
 
 
-  /* ==========================================================
-     READ DATA FROM MONGODB
-     ========================================================== */
+  /*
+  ========================================================
+  READ DATA FROM MONGODB
+  ========================================================
+
+  This method is retained for compatibility with older
+  routes.
+
+  It is NOT called automatically during database startup.
+
+  This prevents startup from loading every collection.
+  ========================================================
+  */
 
   async read() {
 
@@ -439,26 +555,44 @@ export const db = {
     }
 
 
-    const users =
-      await database
+    /*
+    ======================================================
+    READ COLLECTIONS IN PARALLEL
+    ======================================================
+    */
+
+    const [
+      users,
+      products,
+      orders,
+    ] = await Promise.all([
+
+      database
         .collection('users')
         .find({})
-        .toArray();
+        .toArray(),
 
-
-    const products =
-      await database
+      database
         .collection('products')
         .find({})
-        .toArray();
+        .sort({
+          createdAt: -1,
+        })
+        .toArray(),
 
-
-    const orders =
-      await database
+      database
         .collection('orders')
         .find({})
-        .toArray();
+        .toArray(),
 
+    ]);
+
+
+    /*
+    ======================================================
+    UPDATE COMPATIBILITY CACHE
+    ======================================================
+    */
 
     this.data = {
 
@@ -466,7 +600,7 @@ export const db = {
 
       products,
 
-      orders
+      orders,
 
     };
 
@@ -476,11 +610,20 @@ export const db = {
   },
 
 
-  /* ==========================================================
-     WRITE DATA TO MONGODB
+  /*
+  ========================================================
+  WRITE DATA TO MONGODB
+  ========================================================
 
-     This keeps compatibility with the old LowDB routes.
-     ========================================================== */
+  Retained for compatibility with existing routes.
+
+  NOTE:
+
+  This method intentionally keeps the previous behavior
+  because changing its semantics could break existing
+  authentication/order logic.
+  ========================================================
+  */
 
   async write() {
 
@@ -492,6 +635,12 @@ export const db = {
 
     }
 
+
+    /*
+    ======================================================
+    COLLECTION REFERENCES
+    ======================================================
+    */
 
     const usersCollection =
       database.collection(
@@ -511,7 +660,11 @@ export const db = {
       );
 
 
-    /* USERS */
+    /*
+    ======================================================
+    USERS
+    ======================================================
+    */
 
     await usersCollection
       .deleteMany({});
@@ -529,7 +682,11 @@ export const db = {
     }
 
 
-    /* PRODUCTS */
+    /*
+    ======================================================
+    PRODUCTS
+    ======================================================
+    */
 
     await productsCollection
       .deleteMany({});
@@ -547,7 +704,11 @@ export const db = {
     }
 
 
-    /* ORDERS */
+    /*
+    ======================================================
+    ORDERS
+    ======================================================
+    */
 
     await ordersCollection
       .deleteMany({});
@@ -567,18 +728,25 @@ export const db = {
 
     return true;
 
-  }
+  },
 
 };
 
 
-/* ============================================================
-   GET COLLECTION
-   ============================================================
+/*
+=========================================================
+GET COLLECTION
+=========================================================
 
-   Used by routes such as auth.js / orders.js.
+Used by routes such as:
 
-   ============================================================ */
+auth.js
+products.js
+orders.js
+
+This returns the native MongoDB collection directly.
+=========================================================
+*/
 
 export function getCollection(
   name
@@ -600,13 +768,35 @@ export function getCollection(
 }
 
 
-/* ============================================================
-   INITIALIZE MONGODB
-   ============================================================ */
+/*
+=========================================================
+INITIALIZE MONGODB
+=========================================================
+
+IMPORTANT:
+
+This function connects to MongoDB and prepares the
+database.
+
+It does NOT call db.read().
+
+That means startup no longer downloads the entire users,
+products and orders collections.
+
+Only a lightweight product count is performed to determine
+whether seed data is required.
+=========================================================
+*/
 
 export async function initDb() {
 
   try {
+
+    /*
+    ======================================================
+    START CONNECTION
+    ======================================================
+    */
 
     console.log(
       '🔌 Connecting to MongoDB Atlas...'
@@ -620,15 +810,24 @@ export async function initDb() {
 
 
     /*
-     * MongoClient will now perform the SRV lookup using
-     * the DNS servers configured above.
-     */
+    ======================================================
+    CONNECT
+    ======================================================
+    */
 
     await client.connect();
 
 
+    /*
+    ======================================================
+    SELECT DATABASE
+    ======================================================
+    */
+
     database =
-      client.db('astha');
+      client.db(
+        'astha'
+      );
 
 
     console.log(
@@ -641,23 +840,49 @@ export async function initDb() {
     );
 
 
-    /* ========================================================
-       LOAD EXISTING DATA
-       ======================================================== */
+    /*
+    ======================================================
+    CHECK PRODUCT COUNT ONLY
+    ======================================================
 
-    await db.read();
+    We do NOT load every product into memory.
+
+    countDocuments is much lighter than:
+
+        find({}).toArray()
+    ======================================================
+    */
+
+    const productCount =
+      await database
+        .collection('products')
+        .countDocuments(
+          {},
+          {
+            maxTimeMS:
+              5000,
+          }
+        );
 
 
-    /* ========================================================
-       SEED PRODUCTS IF EMPTY
-       ======================================================== */
+    /*
+    ======================================================
+    SEED PRODUCTS IF EMPTY
+    ======================================================
+    */
 
     if (
-      db.data.products.length === 0
+      productCount === 0
     ) {
 
       const products = [];
 
+
+      /*
+      ----------------------------------------------------
+      BUILD SEED PRODUCTS
+      ----------------------------------------------------
+      */
 
       for (
         const group
@@ -697,7 +922,7 @@ export async function initDb() {
 
             createdAt:
               new Date()
-                .toISOString()
+                .toISOString(),
 
           });
 
@@ -705,6 +930,12 @@ export async function initDb() {
 
       }
 
+
+      /*
+      ----------------------------------------------------
+      INSERT SEED DATA
+      ----------------------------------------------------
+      */
 
       if (
         products.length > 0
@@ -719,14 +950,18 @@ export async function initDb() {
           );
 
 
+        /*
+        --------------------------------------------------
+        UPDATE COMPATIBILITY CACHE
+        --------------------------------------------------
+        */
+
         db.data.products =
           products;
 
 
         console.log(
-
           `✅ ${products.length} products seeded into MongoDB`
-
         );
 
       }
@@ -734,20 +969,42 @@ export async function initDb() {
     } else {
 
       console.log(
-
-        `📦 Existing products found: ${db.data.products.length}`
-
+        `📦 Existing products found: ${productCount}`
       );
 
     }
 
+
+    /*
+    ======================================================
+    DATABASE INITIALIZATION COMPLETE
+    ======================================================
+    */
 
     console.log(
       '🚀 MongoDB initialization complete'
     );
 
 
+    return true;
+
   } catch (error) {
+
+    /*
+    ======================================================
+    RESET DATABASE REFERENCE
+    ======================================================
+    */
+
+    database =
+      null;
+
+
+    /*
+    ======================================================
+    ERROR LOGGING
+    ======================================================
+    */
 
     console.error(
       '❌ MongoDB connection failed:'
@@ -760,8 +1017,10 @@ export async function initDb() {
 
 
     /*
-     * Print a useful hint specifically for SRV/DNS failures.
-     */
+    ======================================================
+    SRV / DNS ERROR
+    ======================================================
+    */
 
     if (
       error?.code ===
@@ -780,6 +1039,18 @@ export async function initDb() {
     }
 
 
+    /*
+    ======================================================
+    PROPAGATE ERROR
+    ======================================================
+
+    index.js handles this error.
+
+    Because index.js starts HTTP first, this failure does
+    NOT prevent Express from remaining online.
+    ======================================================
+    */
+
     throw error;
 
   }
@@ -787,15 +1058,15 @@ export async function initDb() {
 }
 
 
-/* ============================================================
-   DATABASE SHUTDOWN
-   ============================================================
+/*
+=========================================================
+DATABASE SHUTDOWN
+=========================================================
 
-   This is intentionally provided so the application can close
-   MongoDB cleanly when the Node process receives a shutdown
-   signal.
-
-   ============================================================ */
+Allows the application to close MongoDB cleanly when
+Node receives a shutdown signal.
+=========================================================
+*/
 
 export async function closeDb() {
 
@@ -812,7 +1083,6 @@ export async function closeDb() {
       '🛑 MongoDB connection closed.'
     );
 
-
   } catch (error) {
 
     console.error(
@@ -825,6 +1095,8 @@ export async function closeDb() {
 }
 
 
-/* ============================================================
-   END OF DATABASE MODULE
-   ============================================================ */
+/*
+=========================================================
+END OF DATABASE MODULE
+=========================================================
+*/

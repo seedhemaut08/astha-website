@@ -1,7 +1,7 @@
 import {
   useEffect,
   useRef,
-  useState
+  useState,
 } from 'react';
 
 
@@ -23,7 +23,7 @@ const SYMBOLS = {
   'Shankh': 'श',
   'Swan': 'ह',
   'Photo Frame': 'फ',
-  'Frame': 'फ'
+  'Frame': 'फ',
 };
 
 
@@ -31,108 +31,87 @@ const SYMBOLS = {
 =========================================================
 DEFAULT CATEGORY MEDIA
 =========================================================
-
-These are fallback images/videos.
-
-If a product has its own image/video in the database,
-those product-specific files will be used first.
-
-Otherwise the category media will be used.
-
-For products without a video, the back will show
-"Video coming soon".
-=========================================================
 */
 
 const DEFAULT_MEDIA = {
   'Ganesh Ji': {
     image: '/images/devotion/ganesh.webp',
-    video: '/images/devotion/ganeshr.mp4'
+    video: '/images/devotion/ganeshr.mp4',
   },
 
   'Lakshmi Ji': {
     image: '/images/devotion/lakshmi.png',
-    video: '/images/devotion/lakshmir.mp4'
+    video: '/images/devotion/lakshmir.mp4',
   },
 
   'Krishnaleela Clock': {
     image: '/images/devotion/ghadi.png',
-    video: '/images/devotion/clockr.mp4'
+    video: '/images/devotion/clockr.mp4',
   },
 
   'Shiv Ji': {
     image: '/images/devotion/shiv.jpg',
-    video: '/images/devotion/shiv.mp4'
+    video: '/images/devotion/shiv.mp4',
   },
 
   'Peacock': {
     image: '/images/devotion/mor.png',
-    video: '/images/devotion/morr.mp4'
+    video: '/images/devotion/morr.mp4',
   },
 
   'Krishna Ji': {
     image: '/images/devotion/krishna.png',
-    video: '/images/devotion/krishnar.mp4'
+    video: '/images/devotion/krishnar.mp4',
   },
-
-  /*
-  ========================================================
-  COW & CALF
-  ========================================================
-
-  Product:
-  cow.png
-
-  Video:
-  cowr.mp4
-  ========================================================
-  */
 
   'Cow & Calf': {
     image: '/images/devotion/cow.png',
-    video: '/images/devotion/cowr.mp4'
+    video: '/images/devotion/cowr.mp4',
   },
-
-  /*
-  ========================================================
-  SHANKH
-  ========================================================
-
-  Image:
-  public/images/devotion/Shankh.png
-
-  Video:
-  public/images/devotion/Shankhr.mp4
-  ========================================================
-  */
 
   'Shankh': {
     image: '/images/devotion/Shankh.png',
-
     video: '/images/devotion/Shankhr.mp4',
 
     videoFallbacks: [
       '/images/devotion/Shankhr.mp4',
       '/images/devotion/Shankhr%20.mp4',
       '/images/devotion/Shankhr.MP4',
-      '/images/devotion/Shankhr%20.MP4'
-    ]
+      '/images/devotion/Shankhr%20.MP4',
+    ],
   },
 
   'Candle Stand': {
     image: '/images/devotion/candle.png',
-    video: '/images/devotion/candler.mp4'
+    video: '/images/devotion/candler.mp4',
   },
 
   'Swan': {
     image: '/images/devotion/swan.png',
-    video: '/images/devotion/swanr.mp4'
+    video: '/images/devotion/swanr.mp4',
   },
 
   'Photo Frame': {
     image: '/images/devotion/frame.png',
-    video: '/images/devotion/framer.mp4'
+    video: '/images/devotion/framer.mp4',
+  },
+};
+
+
+/*
+=========================================================
+HOVER SUPPORT
+=========================================================
+*/
+
+const supportsHover = () => {
+  if (typeof window === 'undefined') {
+    return false;
   }
+
+  return window.matchMedia(
+    '(hover: hover) and (pointer: fine)'
+  ).matches;
 };
 
 
@@ -147,9 +126,8 @@ export default function ProductMedallion({
   name,
   size = 'md',
   image,
-  video
+  video,
 }) {
-
 
   /*
   ========================================================
@@ -173,13 +151,6 @@ export default function ProductMedallion({
   ========================================================
   IMAGE ERROR STATE
   ========================================================
-
-  If a product-specific image path is wrong or the image
-  cannot load, we don't want the entire card to become
-  blank.
-
-  Instead, the category fallback image will be used.
-  ========================================================
   */
 
   const [imageFailed, setImageFailed] = useState(false);
@@ -196,16 +167,10 @@ export default function ProductMedallion({
 
   /*
   ========================================================
-  VIDEO HAS BEEN REQUESTED
-  ========================================================
+  VIDEO REQUEST STATE
 
-  IMPORTANT PERFORMANCE OPTIMIZATION:
-
-  The video element is NOT rendered until the card is
-  actually flipped.
-
-  This prevents all category videos from downloading
-  immediately when the homepage opens.
+  Video is not rendered until the user interacts with
+  the card.
   ========================================================
   */
 
@@ -214,7 +179,7 @@ export default function ProductMedallion({
 
   /*
   ========================================================
-  RESET STATES WHEN PRODUCT CHANGES
+  RESET WHEN PRODUCT CHANGES
   ========================================================
   */
 
@@ -237,7 +202,7 @@ export default function ProductMedallion({
 
   /*
   ========================================================
-  CATEGORY FALLBACK MEDIA
+  RESOLVE CATEGORY
   ========================================================
   */
 
@@ -261,6 +226,12 @@ export default function ProductMedallion({
       : category;
 
 
+  /*
+  ========================================================
+  CATEGORY FALLBACK MEDIA
+  ========================================================
+  */
+
   const media =
     DEFAULT_MEDIA[resolvedCategory] || {};
 
@@ -268,12 +239,6 @@ export default function ProductMedallion({
   /*
   ========================================================
   FINAL IMAGE
-  ========================================================
-
-  Priority:
-
-  1. Product-specific image
-  2. Category default image
   ========================================================
   */
 
@@ -297,7 +262,7 @@ export default function ProductMedallion({
             : [media.video]
         )
       : [
-          video || media.video
+          video || media.video,
         ];
 
 
@@ -312,7 +277,10 @@ export default function ProductMedallion({
     shankhVideoFallbacks[
       Math.min(
         videoSourceIndex,
-        shankhVideoFallbacks.length - 1
+        Math.max(
+          shankhVideoFallbacks.length - 1,
+          0
+        )
       )
     ];
 
@@ -320,19 +288,6 @@ export default function ProductMedallion({
   /*
   ========================================================
   PLAY / RESET VIDEO
-  ========================================================
-
-  When the card flips:
-
-  → video element is created
-  → video starts
-  → video starts from beginning
-  → video loops infinitely
-
-  When card returns:
-
-  → video pauses
-  → video resets to beginning
   ========================================================
   */
 
@@ -346,15 +301,10 @@ export default function ProductMedallion({
 
     if (isFlipped && videoSrc) {
 
-      /*
-      Start from beginning every time
-      the card flips.
-      */
-
       try {
         videoElement.currentTime = 0;
       } catch {
-        // Ignore currentTime errors while media is loading.
+        // Ignore media reset errors.
       }
 
 
@@ -366,22 +316,11 @@ export default function ProductMedallion({
         playPromise !== undefined
       ) {
         playPromise.catch(() => {
-          /*
-          Browser autoplay protection.
-
-          Video is muted and playsInline,
-          so autoplay normally works.
-          */
+          // Ignore autoplay errors.
         });
       }
 
     } else {
-
-      /*
-      Return to image side.
-
-      Stop the video and reset it.
-      */
 
       videoElement.pause();
 
@@ -394,101 +333,58 @@ export default function ProductMedallion({
 
   }, [
     isFlipped,
-    videoSrc
+    videoSrc,
   ]);
 
 
   /*
   ========================================================
-  DESKTOP HOVER — FLIP TO VIDEO
-  ========================================================
-
-  Only devices that support real hover get this
-  behavior.
-
-  Phones/tablets will use the flip button instead.
+  DESKTOP HOVER
   ========================================================
   */
 
   const handleMouseEnter = () => {
-
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia(
-        '(hover: hover)'
-      ).matches
-    ) {
-
-      /*
-      Request video only when the user actually
-      interacts with the card.
-      */
-
-      if (videoSrc) {
-        setVideoRequested(true);
-      }
-
-      setIsFlipped(true);
+    if (!supportsHover()) {
+      return;
     }
+
+    if (videoSrc) {
+      setVideoRequested(true);
+    }
+
+    setIsFlipped(true);
   };
 
 
   /*
   ========================================================
-  DESKTOP HOVER — RETURN TO IMAGE
+  DESKTOP HOVER LEAVE
   ========================================================
   */
 
   const handleMouseLeave = () => {
-
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia(
-        '(hover: hover)'
-      ).matches
-    ) {
-
-      setIsFlipped(false);
+    if (!supportsHover()) {
+      return;
     }
+
+    setIsFlipped(false);
   };
 
 
   /*
   ========================================================
-  MOBILE FLIP BUTTON
-  ========================================================
-
-  IMPORTANT:
-
-  The button lives inside the ProductCard Link.
-
-  preventDefault + stopPropagation ensures:
-
-  Button click
-  → ONLY flips the card
-
-  It does NOT navigate to the product page.
-
-  Clicking the rest of the product card
-  → still navigates normally.
+  MOBILE FLIP
   ========================================================
   */
 
   const handleMobileFlip = (event) => {
-
     event.preventDefault();
     event.stopPropagation();
 
 
-    setVideoRequested(
-      (previous) => {
-        if (!previous && videoSrc) {
-          return true;
-        }
-
-        return previous;
-      }
-    );
+    if (!videoRequested && videoSrc) {
+      setVideoRequested(true);
+    }
 
 
     setIsFlipped(
@@ -504,12 +400,6 @@ export default function ProductMedallion({
   */
 
   const handleImageError = () => {
-
-    /*
-    If this was already the category fallback,
-    don't keep trying to replace it.
-    */
-
     if (image) {
       setImageFailed(true);
     }
@@ -544,13 +434,6 @@ export default function ProductMedallion({
       return;
     }
 
-
-    /*
-    If a normal category video fails,
-    simply stop requesting it.
-
-    The image side remains fully usable.
-    */
 
     setVideoRequested(false);
   };
@@ -657,7 +540,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 FRONT OVERLAY
-            ================================================= */}
+            ================================================== */}
 
             <div
               className={
@@ -670,7 +553,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 FRONT CONTENT
-            ================================================= */}
+            ================================================== */}
 
             <div
               className={
@@ -700,7 +583,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 MOBILE FLIP BUTTON
-            ================================================= */}
+            ================================================== */}
 
             <button
               type="button"
@@ -739,7 +622,7 @@ export default function ProductMedallion({
 
           {/* =================================================
               BACK — VIDEO
-          ================================================= */}
+          ================================================== */}
 
           <div
             className={
@@ -747,19 +630,6 @@ export default function ProductMedallion({
             }
           >
 
-
-            {/*
-            IMPORTANT PERFORMANCE CHANGE:
-
-            The video element is only created after
-            the user interacts with the card.
-
-            Previously preload="auto" allowed the browser
-            to begin loading every video immediately.
-
-            Now the initial homepage load contains only
-            the lightweight image side.
-            */}
 
             {videoRequested && videoSrc ? (
 
@@ -772,21 +642,15 @@ export default function ProductMedallion({
 
                 src={videoSrc}
 
+                poster={imageSrc || undefined}
+
                 muted
 
                 loop
 
                 playsInline
 
-                /*
-                Do not preload all videos automatically.
-
-                The component itself is already lazy because
-                videoRequested only becomes true after
-                interaction.
-                */
-
-                preload="metadata"
+                preload="none"
 
                 onError={
                   handleVideoError
@@ -824,7 +688,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 VIDEO OVERLAY
-            ================================================= */}
+            ================================================== */}
 
             <div
               className={
@@ -837,7 +701,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 BACK CONTENT
-            ================================================= */}
+            ================================================== */}
 
             <div
               className={
@@ -871,7 +735,7 @@ export default function ProductMedallion({
 
             {/* =================================================
                 BACK FLIP BUTTON
-            ================================================= */}
+            ================================================== */}
 
             <button
               type="button"
@@ -902,7 +766,9 @@ export default function ProductMedallion({
 
         </div>
 
+
       </div>
+
 
     </div>
 

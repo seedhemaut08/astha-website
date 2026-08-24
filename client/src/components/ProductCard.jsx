@@ -18,27 +18,13 @@ PRODUCT CARD
 Supports:
 
 1. Individual product image
-   product.image
-
 2. Individual product video
-   product.video
-
-3. Category-based fallback
-   ProductMedallion automatically uses the default
-   image/video for the category when individual media
-   is not provided.
-
+3. Category-based fallback media
 4. Hover flip animation
-
 5. Product video on hover
-
 6. Add to Cart
-
 7. Product detail navigation
-
-8. Render optimization
-   React.memo prevents unnecessary re-renders when the
-   product object has not changed.
+8. React.memo render optimization
 =========================================================
 */
 
@@ -62,21 +48,6 @@ function ProductCardComponent({ product }) {
 
   /*
   ========================================================
-  SAFETY CHECK
-  ========================================================
-
-  Prevent the entire product grid from crashing if an
-  unexpected empty/null product reaches the component.
-  ========================================================
-  */
-
-  if (!product) {
-    return null;
-  }
-
-
-  /*
-  ========================================================
   ADD TO CART
   ========================================================
   */
@@ -87,19 +58,60 @@ function ProductCardComponent({ product }) {
       event.preventDefault();
       event.stopPropagation();
 
+      if (!product) {
+        return;
+      }
+
       addToCart(product);
 
     },
     [
       addToCart,
-      product
+      product,
     ]
   );
 
 
   /*
   ========================================================
-  PRODUCT IMAGE CHECK
+  SAFETY CHECK
+  ========================================================
+  */
+
+  if (!product) {
+    return null;
+  }
+
+
+  /*
+  ========================================================
+  PRODUCT VALUES
+  ========================================================
+  */
+
+  const productId =
+    product.id;
+
+
+  const productName =
+    product.name || 'Product';
+
+
+  const productCategory =
+    product.category || 'Collection';
+
+
+  const productPrice =
+    Number(product.price || 0);
+
+
+  const isOutOfStock =
+    product.inStock === false;
+
+
+  /*
+  ========================================================
+  PRODUCT IMAGE
   ========================================================
   */
 
@@ -110,62 +122,13 @@ function ProductCardComponent({ product }) {
 
   /*
   ========================================================
-  PRODUCT VIDEO CHECK
+  PRODUCT VIDEO
   ========================================================
   */
 
   const hasProductVideo =
     typeof product.video === 'string' &&
     product.video.trim() !== '';
-
-
-  /*
-  ========================================================
-  PRODUCT ID
-  ========================================================
-  */
-
-  const productId = product.id;
-
-
-  /*
-  ========================================================
-  PRODUCT NAME
-  ========================================================
-  */
-
-  const productName =
-    product.name || 'Product';
-
-
-  /*
-  ========================================================
-  PRODUCT CATEGORY
-  ========================================================
-  */
-
-  const productCategory =
-    product.category || 'Collection';
-
-
-  /*
-  ========================================================
-  PRODUCT PRICE
-  ========================================================
-  */
-
-  const productPrice =
-    Number(product.price || 0);
-
-
-  /*
-  ========================================================
-  PRODUCT STOCK
-  ========================================================
-  */
-
-  const isOutOfStock =
-    product.inStock === false;
 
 
   /*
@@ -187,31 +150,6 @@ function ProductCardComponent({ product }) {
         className="product-card__media"
         aria-label={`View ${productName}`}
       >
-
-
-        {/* =================================================
-            PRODUCT MEDALLION
-
-            ProductMedallion handles:
-
-            FRONT
-            → Product image
-
-            HOVER / CLICK
-            → Card flips
-
-            BACK
-            → Product video
-
-            IMPORTANT PERFORMANCE BEHAVIOR:
-
-            ProductMedallion now loads the video only when
-            the user interacts with the card.
-
-            This prevents product/category videos from
-            downloading unnecessarily during initial page
-            load.
-        ================================================== */}
 
         <ProductMedallion
           category={productCategory}
@@ -298,9 +236,11 @@ function ProductCardComponent({ product }) {
             onClick={handleAddToCart}
             disabled={isOutOfStock}
           >
-            {isOutOfStock
-              ? 'Out of Stock'
-              : 'Add to Cart'}
+            {
+              isOutOfStock
+                ? 'Out of Stock'
+                : 'Add to Cart'
+            }
           </button>
 
 
@@ -318,13 +258,6 @@ function ProductCardComponent({ product }) {
 /*
 =========================================================
 MEMOIZED PRODUCT CARD
-=========================================================
-
-React.memo prevents ProductCard from rendering again when
-its parent renders but the product reference has not changed.
-
-This is particularly useful in product grids where multiple
-cards are displayed together.
 =========================================================
 */
 

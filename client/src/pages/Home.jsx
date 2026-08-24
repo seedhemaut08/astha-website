@@ -1,12 +1,10 @@
 import {
   useEffect,
-  useMemo,
+  useRef,
   useState,
 } from 'react';
 
 import { Link } from 'react-router-dom';
-
-import { motion } from 'framer-motion';
 
 import { api } from '../api';
 
@@ -26,48 +24,34 @@ const CATEGORIES = [
     tag: 'ग',
     blurb: 'Beginnings, blessed.',
     image: '/images/devotion/ganesh.webp',
-    video: '/images/devotion/ganeshr.mp4'
+    video: '/images/devotion/ganeshr.mp4',
   },
   {
     name: 'Lakshmi Ji',
     tag: 'ल',
     blurb: 'Prosperity, at home.',
     image: '/images/devotion/lakshmi.png',
-    video: '/images/devotion/lakshmir.mp4'
+    video: '/images/devotion/lakshmir.mp4',
   },
   {
     name: 'Krishnaleela Clock',
     tag: 'क',
     blurb: 'Divine time, eternal stories.',
     image: '/images/devotion/ghadi.png',
-    video: '/images/devotion/clockr.mp4'
+    video: '/images/devotion/clockr.mp4',
   },
   {
     name: 'Peacock',
     tag: 'म',
     blurb: 'Stillness, in silver.',
     image: '/images/devotion/mor.png',
-    video: '/images/devotion/morr.mp4'
-  }
+    video: '/images/devotion/morr.mp4',
+  },
 ];
 
 
 /* ============================================================
    FEATURED CATEGORY ORDER
-   ============================================================
-
-   We deliberately keep only ONE product from each category
-   inside the Featured Edit.
-
-   This prevents:
-
-   Cow & Calf
-   Candle Stand
-   Shankh
-   Swan
-   Photo Frame
-
-   from appearing as duplicate products in Featured Edit.
    ============================================================ */
 
 const FEATURED_CATEGORY_ORDER = [
@@ -75,7 +59,7 @@ const FEATURED_CATEGORY_ORDER = [
   'Candle Stand',
   'Shankh',
   'Swan',
-  'Photo Frame'
+  'Photo Frame',
 ];
 
 
@@ -92,15 +76,6 @@ const normalizeCategory = (value) => {
 
 /* ============================================================
    GET FEATURED PRODUCTS
-   ============================================================
-
-   Rules:
-
-   1. Only one product from each category.
-   2. Category order is controlled by
-      FEATURED_CATEGORY_ORDER.
-   3. If a category has no product, it is skipped.
-   4. Duplicate product IDs are never added.
    ============================================================ */
 
 const getFeaturedProducts = (allProducts) => {
@@ -131,15 +106,81 @@ const getFeaturedProducts = (allProducts) => {
 
     if (matchingProduct) {
       selectedProducts.push(matchingProduct);
-
-      usedProductIds.add(
-        matchingProduct.id
-      );
+      usedProductIds.add(matchingProduct.id);
     }
   });
 
   return selectedProducts;
 };
+
+
+/* ============================================================
+   DEFERRED SECTION
+   ============================================================
+
+   Heavy content below the fold is not mounted immediately.
+
+   This is especially important because:
+   - ProductMedallion can contain videos.
+   - ProductCard can contain product images.
+   - These assets should not compete with the hero image
+     during the first page load.
+
+   The section becomes active shortly before it enters
+   the user's viewport.
+   ============================================================ */
+
+function DeferredSection({
+  children,
+  className = '',
+  rootMargin = '500px',
+}) {
+  const [shouldRender, setShouldRender] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const element = sectionRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      setShouldRender(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (entry?.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin,
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [rootMargin]);
+
+  return (
+    <div
+      ref={sectionRef}
+      className={className}
+    >
+      {shouldRender ? children : null}
+    </div>
+  );
+}
 
 
 /* ============================================================
@@ -167,25 +208,6 @@ export default function Home() {
         )
           ? response.products
           : [];
-
-        /*
-         * ------------------------------------------------------
-         * FEATURED EDIT
-         * ------------------------------------------------------
-         *
-         * We DO NOT simply display the first four products.
-         *
-         * Instead:
-         *
-         * Cow & Calf      → one product
-         * Candle Stand    → one product
-         * Shankh          → one product
-         * Swan            → one product
-         * Photo Frame     → one product
-         *
-         * Therefore the same category cannot fill multiple
-         * Featured Edit cards.
-         */
 
         const featuredProducts =
           getFeaturedProducts(allProducts);
@@ -218,27 +240,6 @@ export default function Home() {
 
 
   /* ==========================================================
-     MEMOIZED FEATURED PRODUCTS
-     ==========================================================
-
-     Featured products are already selected before being stored
-     in state. This memo also gives React a stable derived value
-     instead of recalculating the selection during every render.
-
-     This is a lightweight optimization and does not change the
-     existing product selection logic.
-     ========================================================== */
-
-  const featuredProducts = useMemo(() => {
-    if (!Array.isArray(products)) {
-      return [];
-    }
-
-    return products;
-  }, [products]);
-
-
-  /* ==========================================================
      RETURN
      ========================================================== */
 
@@ -248,21 +249,19 @@ export default function Home() {
 
       {/* =====================================================
           HERO SECTION
-      ====================================================== */}
+          ====================================================== */}
 
       <section className="hero">
 
 
         {/* ===================================================
-            FULL HERO IMAGE
+            HERO IMAGE
 
-            Image:
-            public/images/HP SILVER.png
+            This remains eager because it is the main
+            above-the-fold visual.
 
-            Performance:
-            This image is the main above-the-fold visual,
-            therefore the browser should fetch it with high
-            priority.
+            fetchPriority="high" tells the browser that
+            this image is important for the first screen.
         ==================================================== */}
 
         <img
@@ -277,8 +276,6 @@ export default function Home() {
 
         {/* ===================================================
             DARK OVERLAY
-
-            Keeps the left side dark so text is clearly visible.
         ==================================================== */}
 
         <div
@@ -301,24 +298,7 @@ export default function Home() {
             HERO CONTENT
         ==================================================== */}
 
-        <motion.div
-          className="hero__content"
-
-          initial={{
-            opacity: 0,
-            y: 24
-          }}
-
-          animate={{
-            opacity: 1,
-            y: 0
-          }}
-
-          transition={{
-            duration: 0.9,
-            ease: [0.22, 1, 0.36, 1]
-          }}
-        >
+        <div className="hero__content">
 
 
           {/* =================================================
@@ -375,8 +355,6 @@ export default function Home() {
 
           {/* =================================================
               HERO BUTTONS
-
-              Silver theme — NO GOLD
           ================================================== */}
 
           <div className="hero__actions">
@@ -409,7 +387,7 @@ export default function Home() {
           </div>
 
 
-        </motion.div>
+        </div>
 
 
       </section>
@@ -417,223 +395,245 @@ export default function Home() {
 
       {/* =====================================================
           CATEGORIES / SHOP BY DEVOTION
+
+          Deferred so the four category videos do not compete
+          with the hero during initial page loading.
       ====================================================== */}
 
-      <section className="section categories">
+      <DeferredSection
+        className="home-deferred-section"
+        rootMargin="600px"
+      >
+
+        <section className="section categories">
 
 
-        <SectionDivider />
+          <SectionDivider />
 
 
-        <h2 className="section__title">
-          Shop by Devotion
-        </h2>
+          <h2 className="section__title">
+            Shop by Devotion
+          </h2>
 
 
-        <p className="section__subtitle">
-          Every idol is chosen for a reason. Which is yours?
-        </p>
-
-
-        <div className="categories__grid">
-
-
-          {CATEGORIES.map((cat, i) => (
-
-            <Link
-              key={cat.name}
-              to={`/shop/${encodeURIComponent(cat.name)}`}
-              className="category-tile"
-
-              style={{
-                animationDelay: `${i * 0.08}s`
-              }}
-            >
-
-
-              {/* =================================================
-                  3D DEVOTION FLIP CARD
-
-                  Desktop:
-                  Hover = flip to video
-
-                  Mobile:
-                  Button = flip to video
-              ================================================== */}
-
-              <ProductMedallion
-                category={cat.name}
-                name={cat.name}
-                size="md"
-                image={cat.image}
-                video={cat.video}
-              />
-
-
-            </Link>
-
-          ))}
-
-
-        </div>
-
-
-      </section>
-
-
-      {/* =====================================================
-          FEATURED PRODUCTS SECTION
-      ====================================================== */}
-
-      <section className="section featured">
-
-
-        <SectionDivider />
-
-
-        <h2 className="section__title">
-          The Featured Edit
-        </h2>
-
-
-        <p className="section__subtitle">
-          A few pieces our patrons return for, again and again.
-        </p>
-
-
-        {/* ===================================================
-            PRODUCT LOADING
-        ==================================================== */}
-
-        {loading ? (
-
-          <Loader
-            label="Curating the collection..."
-          />
-
-        ) : featuredProducts.length === 0 ? (
-
-          <p className="empty-state">
-            No featured products available yet.
+          <p className="section__subtitle">
+            Every idol is chosen for a reason. Which is yours?
           </p>
 
-        ) : (
 
-          <div className="product-grid">
+          <div className="categories__grid">
 
 
-            {featuredProducts.map((product) => (
+            {CATEGORIES.map((cat, i) => (
 
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
+              <Link
+                key={cat.name}
+                to={`/shop/${encodeURIComponent(cat.name)}`}
+                className="category-tile"
+                style={{
+                  animationDelay: `${i * 0.08}s`,
+                }}
+              >
+
+
+                {/* =================================================
+                    3D DEVOTION FLIP CARD
+                ================================================== */}
+
+                <ProductMedallion
+                  category={cat.name}
+                  name={cat.name}
+                  size="md"
+                  image={cat.image}
+                  video={cat.video}
+                />
+
+
+              </Link>
 
             ))}
 
 
           </div>
 
-        )}
+
+        </section>
+
+      </DeferredSection>
 
 
-        {/* ===================================================
-            VIEW FULL COLLECTION
-        ==================================================== */}
+      {/* =====================================================
+          FEATURED PRODUCTS SECTION
 
-        <div className="featured__cta">
+          Deferred so product images are not requested during
+          the first hero load.
+      ====================================================== */}
 
+      <DeferredSection
+        className="home-deferred-section"
+        rootMargin="700px"
+      >
 
-          <Link
-            to="/shop"
-            className="btn btn--silver-outline"
-          >
-            View Full Collection
-          </Link>
-
-
-        </div>
+        <section className="section featured">
 
 
-      </section>
+          <SectionDivider />
+
+
+          <h2 className="section__title">
+            The Featured Edit
+          </h2>
+
+
+          <p className="section__subtitle">
+            A few pieces our patrons return for, again and again.
+          </p>
+
+
+          {/* ===================================================
+              PRODUCT LOADING
+          ==================================================== */}
+
+          {loading ? (
+
+            <Loader
+              label="Curating the collection..."
+            />
+
+          ) : products.length === 0 ? (
+
+            <p className="empty-state">
+              No featured products available yet.
+            </p>
+
+          ) : (
+
+            <div className="product-grid">
+
+
+              {products.map((product) => (
+
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                />
+
+              ))}
+
+
+            </div>
+
+          )}
+
+
+          {/* ===================================================
+              VIEW FULL COLLECTION
+          ==================================================== */}
+
+          <div className="featured__cta">
+
+
+            <Link
+              to="/shop"
+              className="btn btn--silver-outline"
+            >
+              View Full Collection
+            </Link>
+
+
+          </div>
+
+
+        </section>
+
+      </DeferredSection>
 
 
       {/* =====================================================
           CRAFT BANNER SECTION
+
+          This section has no need to load during the first
+          screen, so it is also deferred.
       ====================================================== */}
 
-      <section className="section craft-banner">
+      <DeferredSection
+        className="home-deferred-section"
+        rootMargin="700px"
+      >
+
+        <section className="section craft-banner">
 
 
-        <div className="craft-banner__inner">
+          <div className="craft-banner__inner">
 
 
-          {/* Small Heading */}
+            {/* Small Heading */}
 
-          <span className="eyebrow">
-            The Astha Promise
-          </span>
-
-
-          {/* Main Heading */}
-
-          <h2>
-            Every idol, hand-finished.
-            Every order, personal.
-          </h2>
+            <span className="eyebrow">
+              The Astha Promise
+            </span>
 
 
-          {/* Description */}
+            {/* Main Heading */}
 
-          <p>
-            From the first sketch to the final polish,
-            each Astha murti passes through the hands
-            of artisans who have spent decades perfecting
-            the craft. No two pieces are rushed.
-          </p>
+            <h2>
+              Every idol, hand-finished.
+              Every order, personal.
+            </h2>
 
 
-          {/* =================================================
-              CRAFT STATS
-          ================================================== */}
+            {/* Description */}
 
-          <div className="craft-banner__stats">
-
-
-            {/* Years */}
-
-            <div>
-              <strong>25+</strong>
-              <span>Years of Craft</span>
-            </div>
+            <p>
+              From the first sketch to the final polish,
+              each Astha murti passes through the hands
+              of artisans who have spent decades perfecting
+              the craft. No two pieces are rushed.
+            </p>
 
 
-            {/* Hand Finished */}
+            {/* =================================================
+                CRAFT STATS
+            ================================================== */}
 
-            <div>
-              <strong>100%</strong>
-              <span>Hand-Finished</span>
-            </div>
+            <div className="craft-banner__stats">
 
 
-            {/* Homes */}
+              {/* Years */}
 
-            <div>
-              <strong>1000+</strong>
-              <span>Homes Blessed</span>
+              <div>
+                <strong>25+</strong>
+                <span>Years of Craft</span>
+              </div>
+
+
+              {/* Hand Finished */}
+
+              <div>
+                <strong>100%</strong>
+                <span>Hand-Finished</span>
+              </div>
+
+
+              {/* Homes */}
+
+              <div>
+                <strong>1000+</strong>
+                <span>Homes Blessed</span>
+              </div>
+
+
             </div>
 
 
           </div>
 
 
-        </div>
+        </section>
 
-
-      </section>
+      </DeferredSection>
 
 
     </div>
   );
 }
-
