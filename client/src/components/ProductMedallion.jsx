@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState
+} from 'react';
 
 
 /*
@@ -93,14 +97,20 @@ const DEFAULT_MEDIA = {
   ========================================================
   SHANKH
   ========================================================
-  Image: public/images/devotion/Shankh.png
-  Video: public/images/devotion/Shankhr.mp4
+
+  Image:
+  public/images/devotion/Shankh.png
+
+  Video:
+  public/images/devotion/Shankhr.mp4
   ========================================================
   */
 
   'Shankh': {
     image: '/images/devotion/Shankh.png',
+
     video: '/images/devotion/Shankhr.mp4',
+
     videoFallbacks: [
       '/images/devotion/Shankhr.mp4',
       '/images/devotion/Shankhr%20.mp4',
@@ -109,20 +119,20 @@ const DEFAULT_MEDIA = {
     ]
   },
 
- 'Candle Stand': {
-  image: '/images/devotion/candle.png',
-  video: '/images/devotion/candler.mp4'
-},
+  'Candle Stand': {
+    image: '/images/devotion/candle.png',
+    video: '/images/devotion/candler.mp4'
+  },
 
- 'Swan': {
-  image: '/images/devotion/swan.png',
-  video: '/images/devotion/swanr.mp4'
-},
+  'Swan': {
+    image: '/images/devotion/swan.png',
+    video: '/images/devotion/swanr.mp4'
+  },
 
- 'Photo Frame': {
-  image: '/images/devotion/frame.png',
-  video: '/images/devotion/framer.mp4'
-},
+  'Photo Frame': {
+    image: '/images/devotion/frame.png',
+    video: '/images/devotion/framer.mp4'
+  }
 };
 
 
@@ -173,18 +183,46 @@ export default function ProductMedallion({
   */
 
   const [imageFailed, setImageFailed] = useState(false);
+
+
+  /*
+  ========================================================
+  VIDEO SOURCE ERROR STATE
+  ========================================================
+  */
+
   const [videoSourceIndex, setVideoSourceIndex] = useState(0);
 
 
   /*
   ========================================================
-  RESET IMAGE ERROR WHEN PRODUCT CHANGES
+  VIDEO HAS BEEN REQUESTED
+  ========================================================
+
+  IMPORTANT PERFORMANCE OPTIMIZATION:
+
+  The video element is NOT rendered until the card is
+  actually flipped.
+
+  This prevents all category videos from downloading
+  immediately when the homepage opens.
+  ========================================================
+  */
+
+  const [videoRequested, setVideoRequested] = useState(false);
+
+
+  /*
+  ========================================================
+  RESET STATES WHEN PRODUCT CHANGES
   ========================================================
   */
 
   useEffect(() => {
     setImageFailed(false);
     setVideoSourceIndex(0);
+    setVideoRequested(false);
+    setIsFlipped(false);
   }, [image, category]);
 
 
@@ -203,26 +241,39 @@ export default function ProductMedallion({
   ========================================================
   */
 
-  const normalizedCategory = String(category || '').trim().toLowerCase();
-  const normalizedName = String(name || '').trim().toLowerCase();
+  const normalizedCategory = String(
+    category || ''
+  )
+    .trim()
+    .toLowerCase();
+
+  const normalizedName = String(
+    name || ''
+  )
+    .trim()
+    .toLowerCase();
+
 
   const resolvedCategory =
-    normalizedCategory.includes('shankh') || normalizedName.includes('shankh')
+    normalizedCategory.includes('shankh') ||
+    normalizedName.includes('shankh')
       ? 'Shankh'
       : category;
 
-  const media = DEFAULT_MEDIA[resolvedCategory] || {};
+
+  const media =
+    DEFAULT_MEDIA[resolvedCategory] || {};
 
 
   /*
   ========================================================
-  FINAL IMAGE / VIDEO
+  FINAL IMAGE
   ========================================================
 
   Priority:
 
-  1. Product-specific image/video
-  2. Category default image/video
+  1. Product-specific image
+  2. Category default image
   ========================================================
   */
 
@@ -231,6 +282,13 @@ export default function ProductMedallion({
       ? image
       : media.image;
 
+
+  /*
+  ========================================================
+  VIDEO FALLBACK SOURCES
+  ========================================================
+  */
+
   const shankhVideoFallbacks =
     resolvedCategory === 'Shankh'
       ? (
@@ -238,12 +296,24 @@ export default function ProductMedallion({
             ? media.videoFallbacks
             : [media.video]
         )
-      : [video || media.video];
+      : [
+          video || media.video
+        ];
+
+
+  /*
+  ========================================================
+  FINAL VIDEO SOURCE
+  ========================================================
+  */
 
   const videoSrc =
     video ||
     shankhVideoFallbacks[
-      Math.min(videoSourceIndex, shankhVideoFallbacks.length - 1)
+      Math.min(
+        videoSourceIndex,
+        shankhVideoFallbacks.length - 1
+      )
     ];
 
 
@@ -254,6 +324,7 @@ export default function ProductMedallion({
 
   When the card flips:
 
+  → video element is created
   → video starts
   → video starts from beginning
   → video loops infinitely
@@ -280,14 +351,20 @@ export default function ProductMedallion({
       the card flips.
       */
 
-      videoElement.currentTime = 0;
+      try {
+        videoElement.currentTime = 0;
+      } catch {
+        // Ignore currentTime errors while media is loading.
+      }
 
 
-      const playPromise = videoElement.play();
+      const playPromise =
+        videoElement.play();
 
 
-      if (playPromise !== undefined) {
-
+      if (
+        playPromise !== undefined
+      ) {
         playPromise.catch(() => {
           /*
           Browser autoplay protection.
@@ -296,7 +373,6 @@ export default function ProductMedallion({
           so autoplay normally works.
           */
         });
-
       }
 
     } else {
@@ -308,11 +384,18 @@ export default function ProductMedallion({
       */
 
       videoElement.pause();
-      videoElement.currentTime = 0;
 
+      try {
+        videoElement.currentTime = 0;
+      } catch {
+        // Ignore media reset errors.
+      }
     }
 
-  }, [isFlipped, videoSrc]);
+  }, [
+    isFlipped,
+    videoSrc
+  ]);
 
 
   /*
@@ -331,13 +414,22 @@ export default function ProductMedallion({
 
     if (
       typeof window !== 'undefined' &&
-      window.matchMedia('(hover: hover)').matches
+      window.matchMedia(
+        '(hover: hover)'
+      ).matches
     ) {
 
+      /*
+      Request video only when the user actually
+      interacts with the card.
+      */
+
+      if (videoSrc) {
+        setVideoRequested(true);
+      }
+
       setIsFlipped(true);
-
     }
-
   };
 
 
@@ -351,13 +443,13 @@ export default function ProductMedallion({
 
     if (
       typeof window !== 'undefined' &&
-      window.matchMedia('(hover: hover)').matches
+      window.matchMedia(
+        '(hover: hover)'
+      ).matches
     ) {
 
       setIsFlipped(false);
-
     }
-
   };
 
 
@@ -387,8 +479,21 @@ export default function ProductMedallion({
     event.preventDefault();
     event.stopPropagation();
 
-    setIsFlipped((previous) => !previous);
 
+    setVideoRequested(
+      (previous) => {
+        if (!previous && videoSrc) {
+          return true;
+        }
+
+        return previous;
+      }
+    );
+
+
+    setIsFlipped(
+      (previous) => !previous
+    );
   };
 
 
@@ -408,7 +513,46 @@ export default function ProductMedallion({
     if (image) {
       setImageFailed(true);
     }
+  };
 
+
+  /*
+  ========================================================
+  VIDEO LOAD ERROR
+  ========================================================
+  */
+
+  const handleVideoError = () => {
+
+    if (
+      resolvedCategory === 'Shankh'
+    ) {
+
+      setVideoSourceIndex(
+        (current) => {
+
+          const next =
+            current + 1;
+
+          return next <
+            shankhVideoFallbacks.length
+            ? next
+            : current;
+        }
+      );
+
+      return;
+    }
+
+
+    /*
+    If a normal category video fails,
+    simply stop requesting it.
+
+    The image side remains fully usable.
+    */
+
+    setVideoRequested(false);
   };
 
 
@@ -418,25 +562,30 @@ export default function ProductMedallion({
   ========================================================
   */
 
-  const handleVideoError = () => {
-    if (resolvedCategory === 'Shankh') {
-      setVideoSourceIndex((current) => {
-        const next = current + 1;
-        return next < shankhVideoFallbacks.length ? next : current;
-      });
-    }
-  };
-
   return (
 
     <div
-      className={`medallion medallion--${size} ${
-        isFlipped ? 'medallion--flipped' : ''
-      }`}
+      className={
+        `medallion medallion--${size} ${
+          isFlipped
+            ? 'medallion--flipped'
+            : ''
+        }`
+      }
+
       role="group"
-      aria-label={`${name} devotion card`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+
+      aria-label={
+        `${name} devotion card`
+      }
+
+      onMouseEnter={
+        handleMouseEnter
+      }
+
+      onMouseLeave={
+        handleMouseLeave
+      }
     >
 
 
@@ -458,25 +607,46 @@ export default function ProductMedallion({
               FRONT — IMAGE
           ================================================= */}
 
-          <div className="medallion__face medallion__front">
+          <div
+            className={
+              'medallion__face medallion__front'
+            }
+          >
 
 
             {imageSrc ? (
 
               <img
                 src={imageSrc}
-                alt={`${name} idol`}
+
+                alt={
+                  `${name} idol`
+                }
+
                 className="medallion__image"
+
                 draggable="false"
+
                 loading="lazy"
-                onError={handleImageError}
+
+                decoding="async"
+
+                onError={
+                  handleImageError
+                }
               />
 
             ) : (
 
-              <div className="medallion__fallback">
+              <div
+                className="medallion__fallback"
+              >
 
-                <span className="medallion__fallback-symbol">
+                <span
+                  className={
+                    'medallion__fallback-symbol'
+                  }
+                >
                   {symbol}
                 </span>
 
@@ -490,7 +660,10 @@ export default function ProductMedallion({
             ================================================= */}
 
             <div
-              className="medallion__front-overlay"
+              className={
+                'medallion__front-overlay'
+              }
+
               aria-hidden="true"
             />
 
@@ -499,13 +672,26 @@ export default function ProductMedallion({
                 FRONT CONTENT
             ================================================= */}
 
-            <div className="medallion__front-content">
+            <div
+              className={
+                'medallion__front-content'
+              }
+            >
 
-              <span className="medallion__front-name">
+              <span
+                className={
+                  'medallion__front-name'
+                }
+              >
                 {name}
               </span>
 
-              <span className="medallion__front-blurb">
+
+              <span
+                className={
+                  'medallion__front-blurb'
+                }
+              >
                 Tap to discover
               </span>
 
@@ -518,8 +704,15 @@ export default function ProductMedallion({
 
             <button
               type="button"
-              className="medallion__flip-button"
-              onClick={handleMobileFlip}
+
+              className={
+                'medallion__flip-button'
+              }
+
+              onClick={
+                handleMobileFlip
+              }
+
               aria-label={
                 isFlipped
                   ? `Show ${name} image`
@@ -529,8 +722,14 @@ export default function ProductMedallion({
               }
             >
 
-              <span aria-hidden="true">
-                {isFlipped ? '↩' : '↻'}
+              <span
+                aria-hidden="true"
+              >
+                {
+                  isFlipped
+                    ? '↩'
+                    : '↻'
+                }
               </span>
 
             </button>
@@ -542,33 +741,80 @@ export default function ProductMedallion({
               BACK — VIDEO
           ================================================= */}
 
-          <div className="medallion__face medallion__back">
+          <div
+            className={
+              'medallion__face medallion__back'
+            }
+          >
 
 
-            {videoSrc ? (
+            {/*
+            IMPORTANT PERFORMANCE CHANGE:
+
+            The video element is only created after
+            the user interacts with the card.
+
+            Previously preload="auto" allowed the browser
+            to begin loading every video immediately.
+
+            Now the initial homepage load contains only
+            the lightweight image side.
+            */}
+
+            {videoRequested && videoSrc ? (
 
               <video
                 ref={videoRef}
-                className="medallion__video"
+
+                className={
+                  'medallion__video'
+                }
+
                 src={videoSrc}
+
                 muted
+
                 loop
+
                 playsInline
-                preload="auto"
-                onError={handleVideoError}
-                aria-label={`${name} devotional video`}
+
+                /*
+                Do not preload all videos automatically.
+
+                The component itself is already lazy because
+                videoRequested only becomes true after
+                interaction.
+                */
+
+                preload="metadata"
+
+                onError={
+                  handleVideoError
+                }
+
+                aria-label={
+                  `${name} devotional video`
+                }
               />
 
             ) : (
 
-              <div className="medallion__video-fallback">
+              <div
+                className={
+                  'medallion__video-fallback'
+                }
+              >
 
                 <span>
                   {symbol}
                 </span>
 
                 <small>
-                  Video coming soon
+                  {
+                    videoSrc
+                      ? 'Tap to discover'
+                      : 'Video coming soon'
+                  }
                 </small>
 
               </div>
@@ -581,25 +827,43 @@ export default function ProductMedallion({
             ================================================= */}
 
             <div
-              className="medallion__video-overlay"
+              className={
+                'medallion__video-overlay'
+              }
+
               aria-hidden="true"
             />
-  
+
 
             {/* =================================================
                 BACK CONTENT
             ================================================= */}
 
-            <div className="medallion__back-content">
+            <div
+              className={
+                'medallion__back-content'
+              }
+            >
 
-              <span className="medallion__back-name">
+              <span
+                className={
+                  'medallion__back-name'
+                }
+              >
                 {name}
               </span>
 
-              <span className="medallion__back-label">
-                {videoSrc
-                  ? 'Devotion in motion'
-                  : 'Video coming soon'}
+
+              <span
+                className={
+                  'medallion__back-label'
+                }
+              >
+                {
+                  videoSrc
+                    ? 'Devotion in motion'
+                    : 'Video coming soon'
+                }
               </span>
 
             </div>
@@ -611,12 +875,23 @@ export default function ProductMedallion({
 
             <button
               type="button"
-              className="medallion__flip-button medallion__flip-button--back"
-              onClick={handleMobileFlip}
-              aria-label={`Show ${name} image`}
+
+              className={
+                'medallion__flip-button medallion__flip-button--back'
+              }
+
+              onClick={
+                handleMobileFlip
+              }
+
+              aria-label={
+                `Show ${name} image`
+              }
             >
 
-              <span aria-hidden="true">
+              <span
+                aria-hidden="true"
+              >
                 ↩
               </span>
 

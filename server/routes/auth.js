@@ -1,26 +1,31 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 import { getCollection } from '../db.js';
 import { signToken, requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
+
 /* ============================================================
-   EMAIL CONFIGURATION
+   EMAIL CONFIGURATION — RESEND
    ============================================================ */
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.titan.email',
-  port: Number(process.env.SMTP_PORT || 465),
-  secure: String(process.env.SMTP_SECURE || 'true') === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+const resendApiKey = String(
+  process.env.RESEND_API_KEY || ''
+).trim();
+
+const resend = resendApiKey
+  ? new Resend(resendApiKey)
+  : null;
+
+const EMAIL_FROM =
+  process.env.RESEND_FROM ||
+  process.env.SMTP_FROM ||
+  'Astha Silver <info@aasthasilver.in>';
+
 
 /* ============================================================
    OTP HELPERS
@@ -30,77 +35,140 @@ function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+
 function getOtpExpiry() {
   return new Date(Date.now() + 10 * 60 * 1000);
 }
+
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
+
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+
+/* ============================================================
+   SEND OTP EMAIL
+   ============================================================ */
 
 async function sendOtpEmail({
   email,
   otp,
   type = 'signup'
 }) {
+
   let subject;
   let heading;
   let intro;
 
+
   if (type === 'signup') {
-    subject = 'Verify your email — Astha Silver';
-    heading = 'Welcome to Astha Silver';
+
+    subject =
+      'Verify your email — Astha Silver';
+
+    heading =
+      'Welcome to Astha Silver';
+
     intro =
       'Thank you for creating an account with Astha Silver. Please use the verification code below to complete your registration.';
+
   } else {
-    subject = 'Password reset OTP — Astha Silver';
-    heading = 'Password Reset Request';
+
+    subject =
+      'Password reset OTP — Astha Silver';
+
+    heading =
+      'Password Reset Request';
+
     intro =
       'We received a request to reset your Astha Silver account password. Use the verification code below to continue.';
+
   }
 
-  await transporter.sendMail({
-    from:
-      process.env.SMTP_FROM ||
-      'Astha Silver <info@aasthasilver.in>',
 
-    to: email,
+  /* ==========================================================
+     RESEND CONFIGURATION CHECK
+     ========================================================== */
+
+  if (!resend) {
+
+    throw new Error(
+      'RESEND_API_KEY is not configured on the server.'
+    );
+
+  }
+
+
+  /* ==========================================================
+     SEND EMAIL THROUGH RESEND
+     ========================================================== */
+
+  await resend.emails.send({
+
+    from: EMAIL_FROM,
+
+    to: [email],
 
     subject,
 
-    text: `${heading}\n\n${intro}\n\nYour verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you did not request this, you can safely ignore this email.\n\nAstha Silver\nhttps://aasthasilver.in`,
+    text:
+      `${heading}\n\n` +
+      `${intro}\n\n` +
+      `Your verification code is: ${otp}\n\n` +
+      `This code expires in 10 minutes.\n\n` +
+      `If you did not request this, you can safely ignore this email.\n\n` +
+      `Astha Silver\n` +
+      `https://aasthasilver.in`,
 
     html: `
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>${subject}</title>
+
 </head>
 
-<body style="
-  margin:0;
-  padding:0;
-  background:#080808;
-  font-family:Arial, Helvetica, sans-serif;
-  color:#f5f5f5;
-">
+
+<body
+  style="
+    margin:0;
+    padding:0;
+    background:#080808;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#f5f5f5;
+  "
+>
+
 
   <table
     width="100%"
     cellpadding="0"
     cellspacing="0"
-    style="background:#080808; padding:40px 15px;"
+    style="
+      background:#080808;
+      padding:40px 15px;
+    "
   >
 
     <tr>
+
       <td align="center">
+
 
         <table
           width="100%"
@@ -115,9 +183,11 @@ async function sendOtpEmail({
           "
         >
 
+
           <!-- HEADER -->
 
           <tr>
+
             <td
               align="center"
               style="
@@ -137,6 +207,7 @@ async function sendOtpEmail({
                 आस्था
               </div>
 
+
               <div
                 style="
                   margin-top:6px;
@@ -149,12 +220,20 @@ async function sendOtpEmail({
               </div>
 
             </td>
+
           </tr>
+
 
           <!-- CONTENT -->
 
           <tr>
-            <td style="padding:40px 35px;">
+
+            <td
+              style="
+                padding:40px 35px;
+              "
+            >
+
 
               <div
                 style="
@@ -166,8 +245,11 @@ async function sendOtpEmail({
                   margin-bottom:15px;
                 "
               >
-                ${type === 'signup' ? 'Email Verification' : 'Security Verification'}
+                ${type === 'signup'
+                  ? 'Email Verification'
+                  : 'Security Verification'}
               </div>
+
 
               <h1
                 style="
@@ -181,6 +263,7 @@ async function sendOtpEmail({
                 ${heading}
               </h1>
 
+
               <p
                 style="
                   margin:0 0 30px;
@@ -191,6 +274,7 @@ async function sendOtpEmail({
               >
                 ${intro}
               </p>
+
 
               <!-- OTP BOX -->
 
@@ -206,7 +290,13 @@ async function sendOtpEmail({
               >
 
                 <tr>
-                  <td align="center" style="padding:28px 20px;">
+
+                  <td
+                    align="center"
+                    style="
+                      padding:28px 20px;
+                    "
+                  >
 
                     <div
                       style="
@@ -220,6 +310,7 @@ async function sendOtpEmail({
                       Your verification code
                     </div>
 
+
                     <div
                       style="
                         color:#e3bc61;
@@ -232,9 +323,11 @@ async function sendOtpEmail({
                     </div>
 
                   </td>
+
                 </tr>
 
               </table>
+
 
               <p
                 style="
@@ -246,10 +339,16 @@ async function sendOtpEmail({
                 "
               >
                 This verification code expires in
-                <strong style="color:#d7ad4f;">
+
+                <strong
+                  style="
+                    color:#d7ad4f;
+                  "
+                >
                   10 minutes
                 </strong>.
               </p>
+
 
               <div
                 style="
@@ -267,12 +366,16 @@ async function sendOtpEmail({
                 remains secure.
               </div>
 
+
             </td>
+
           </tr>
+
 
           <!-- FOOTER -->
 
           <tr>
+
             <td
               align="center"
               style="
@@ -284,13 +387,21 @@ async function sendOtpEmail({
               "
             >
 
-              <div style="color:#d7ad4f; margin-bottom:5px;">
+              <div
+                style="
+                  color:#d7ad4f;
+                  margin-bottom:5px;
+                "
+              >
                 Astha Silver
               </div>
 
+
               Crafted with care, made to be cherished.
 
+
               <br />
+
 
               <a
                 href="https://aasthasilver.in"
@@ -302,28 +413,40 @@ async function sendOtpEmail({
                 aasthasilver.in
               </a>
 
+
             </td>
+
           </tr>
+
 
         </table>
 
+
       </td>
+
     </tr>
 
   </table>
 
+
 </body>
+
 </html>
 `
+
   });
+
 }
+
 
 /* ============================================================
    REGISTER
    ============================================================
 
    FIRST REQUEST:
+
    POST /register
+
    {
      name,
      email,
@@ -333,8 +456,11 @@ async function sendOtpEmail({
 
    → OTP sent
 
+
    SECOND REQUEST:
+
    POST /register
+
    {
      name,
      email,
@@ -344,10 +470,14 @@ async function sendOtpEmail({
    }
 
    → Account created
+
    ============================================================ */
 
+
 router.post('/register', async (req, res) => {
+
   try {
+
     const {
       name,
       email,
@@ -356,122 +486,245 @@ router.post('/register', async (req, res) => {
       otp
     } = req.body;
 
+
     if (!name || !email || !password) {
+
       return res.status(400).json({
-        error: 'Name, email and password are required.'
+
+        error:
+          'Name, email and password are required.'
+
       });
+
     }
+
 
     if (String(password).length < 6) {
+
       return res.status(400).json({
-        error: 'Password must be at least 6 characters.'
+
+        error:
+          'Password must be at least 6 characters.'
+
       });
+
     }
 
-    const normalizedEmail = normalizeEmail(email);
 
-    const users = getCollection('users');
-    const otpCollection = getCollection('otpVerifications');
+    const normalizedEmail =
+      normalizeEmail(email);
+
+
+    const users =
+      getCollection('users');
+
+
+    const otpCollection =
+      getCollection('otpVerifications');
+
 
     /* --------------------------------------------------------
        CHECK EXISTING USER
        -------------------------------------------------------- */
 
-    const existing = await users.findOne({
-      email: {
-        $regex: `^${escapeRegex(normalizedEmail)}$`,
-        $options: 'i'
-      }
-    });
+
+    const existing =
+      await users.findOne({
+
+        email: {
+
+          $regex:
+            `^${escapeRegex(normalizedEmail)}$`,
+
+          $options: 'i'
+
+        }
+
+      });
+
 
     if (existing) {
+
       return res.status(409).json({
-        error: 'An account with this email already exists.'
+
+        error:
+          'An account with this email already exists.'
+
       });
+
     }
+
 
     /* --------------------------------------------------------
        OTP VERIFICATION
        -------------------------------------------------------- */
 
+
     if (otp) {
-      const verification = await otpCollection.findOne({
-        email: normalizedEmail,
-        purpose: 'signup'
-      });
+
+      const verification =
+        await otpCollection.findOne({
+
+          email:
+            normalizedEmail,
+
+          purpose:
+            'signup'
+
+        });
+
 
       if (!verification) {
+
         return res.status(400).json({
-          error: 'OTP not found or expired. Please request a new OTP.'
+
+          error:
+            'OTP not found or expired. Please request a new OTP.'
+
         });
+
       }
+
 
       if (
         verification.expiresAt &&
         new Date(verification.expiresAt) < new Date()
       ) {
+
         await otpCollection.deleteOne({
-          _id: verification._id
+
+          _id:
+            verification._id
+
         });
+
 
         return res.status(400).json({
-          error: 'OTP has expired. Please request a new OTP.'
+
+          error:
+            'OTP has expired. Please request a new OTP.'
+
         });
+
       }
 
-      const validOtp = await bcrypt.compare(
-        String(otp),
-        verification.otpHash
-      );
+
+      const validOtp =
+        await bcrypt.compare(
+
+          String(otp),
+
+          verification.otpHash
+
+        );
+
 
       if (!validOtp) {
+
         return res.status(400).json({
-          error: 'Invalid OTP. Please check the code and try again.'
+
+          error:
+            'Invalid OTP. Please check the code and try again.'
+
         });
+
       }
 
-      const hashedPassword = await bcrypt.hash(
-        String(password),
-        10
-      );
+
+      const hashedPassword =
+        await bcrypt.hash(
+
+          String(password),
+
+          10
+
+        );
+
 
       const user = {
-        id: nanoid(10),
-        name: String(name).trim(),
-        email: normalizedEmail,
-        phone: phone ? String(phone).trim() : '',
-        password: hashedPassword,
-        createdAt: new Date()
+
+        id:
+          nanoid(10),
+
+        name:
+          String(name).trim(),
+
+        email:
+          normalizedEmail,
+
+        phone:
+          phone
+            ? String(phone).trim()
+            : '',
+
+        password:
+          hashedPassword,
+
+        createdAt:
+          new Date()
+
       };
+
 
       await users.insertOne(user);
 
+
       await otpCollection.deleteOne({
-        _id: verification._id
+
+        _id:
+          verification._id
+
       });
 
-      const token = signToken(user);
+
+      const token =
+        signToken(user);
+
 
       return res.status(201).json({
-        message: 'Account created successfully.',
+
+        message:
+          'Account created successfully.',
+
         token,
+
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone || ''
+
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          phone:
+            user.phone || ''
+
         }
+
       });
+
     }
+
 
     /* --------------------------------------------------------
        GENERATE SIGNUP OTP
        -------------------------------------------------------- */
 
-    const existingOtp = await otpCollection.findOne({
-      email: normalizedEmail,
-      purpose: 'signup'
-    });
+
+    const existingOtp =
+      await otpCollection.findOne({
+
+        email:
+          normalizedEmail,
+
+        purpose:
+          'signup'
+
+      });
+
 
     if (
       existingOtp &&
@@ -480,53 +733,109 @@ router.post('/register', async (req, res) => {
         new Date(existingOtp.lastSentAt).getTime() <
         60 * 1000
     ) {
+
       return res.status(429).json({
+
         error:
           'Please wait 60 seconds before requesting another OTP.'
+
       });
+
     }
 
-    const generatedOtp = generateOtp();
 
-    const otpHash = await bcrypt.hash(
-      generatedOtp,
-      10
-    );
+    const generatedOtp =
+      generateOtp();
+
+
+    const otpHash =
+      await bcrypt.hash(
+
+        generatedOtp,
+
+        10
+
+      );
+
 
     await otpCollection.deleteMany({
-      email: normalizedEmail,
-      purpose: 'signup'
+
+      email:
+        normalizedEmail,
+
+      purpose:
+        'signup'
+
     });
+
 
     await otpCollection.insertOne({
-      email: normalizedEmail,
-      purpose: 'signup',
+
+      email:
+        normalizedEmail,
+
+      purpose:
+        'signup',
+
       otpHash,
-      expiresAt: getOtpExpiry(),
-      lastSentAt: new Date(),
-      createdAt: new Date()
+
+      expiresAt:
+        getOtpExpiry(),
+
+      lastSentAt:
+        new Date(),
+
+      createdAt:
+        new Date()
+
     });
+
 
     await sendOtpEmail({
-      email: normalizedEmail,
-      otp: generatedOtp,
-      type: 'signup'
+
+      email:
+        normalizedEmail,
+
+      otp:
+        generatedOtp,
+
+      type:
+        'signup'
+
     });
+
 
     return res.status(200).json({
-      requiresOtp: true,
+
+      requiresOtp:
+        true,
+
       message:
         'A verification code has been sent to your email address.',
-      email: normalizedEmail
+
+      email:
+        normalizedEmail
+
     });
+
 
   } catch (error) {
-    console.error('REGISTER ERROR:', error);
+
+    console.error(
+      'REGISTER ERROR:',
+      error
+    );
+
 
     return res.status(500).json({
-      error: 'Unable to process registration.'
+
+      error:
+        'Unable to process registration.'
+
     });
+
   }
+
 });
 
 
@@ -534,383 +843,718 @@ router.post('/register', async (req, res) => {
    RESEND SIGNUP OTP
    ============================================================ */
 
-router.post('/register/resend-otp', async (req, res) => {
-  try {
-    const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        error: 'Email is required.'
-      });
-    }
+router.post(
+  '/register/resend-otp',
+  async (req, res) => {
 
-    const normalizedEmail = normalizeEmail(email);
+    try {
 
-    const users = getCollection('users');
-    const otpCollection = getCollection('otpVerifications');
+      const {
+        email
+      } = req.body;
 
-    const existingUser = await users.findOne({
-      email: {
-        $regex: `^${escapeRegex(normalizedEmail)}$`,
-        $options: 'i'
+
+      if (!email) {
+
+        return res.status(400).json({
+
+          error:
+            'Email is required.'
+
+        });
+
       }
-    });
 
-    if (existingUser) {
-      return res.status(409).json({
-        error: 'An account with this email already exists.'
+
+      const normalizedEmail =
+        normalizeEmail(email);
+
+
+      const users =
+        getCollection('users');
+
+
+      const otpCollection =
+        getCollection('otpVerifications');
+
+
+      const existingUser =
+        await users.findOne({
+
+          email: {
+
+            $regex:
+              `^${escapeRegex(normalizedEmail)}$`,
+
+            $options:
+              'i'
+
+          }
+
+        });
+
+
+      if (existingUser) {
+
+        return res.status(409).json({
+
+          error:
+            'An account with this email already exists.'
+
+        });
+
+      }
+
+
+      const previousOtp =
+        await otpCollection.findOne({
+
+          email:
+            normalizedEmail,
+
+          purpose:
+            'signup'
+
+        });
+
+
+      if (
+        previousOtp &&
+        previousOtp.lastSentAt &&
+        Date.now() -
+          new Date(previousOtp.lastSentAt).getTime() <
+          60 * 1000
+      ) {
+
+        return res.status(429).json({
+
+          error:
+            'Please wait 60 seconds before requesting another OTP.'
+
+        });
+
+      }
+
+
+      const generatedOtp =
+        generateOtp();
+
+
+      const otpHash =
+        await bcrypt.hash(
+
+          generatedOtp,
+
+          10
+
+        );
+
+
+      await otpCollection.deleteMany({
+
+        email:
+          normalizedEmail,
+
+        purpose:
+          'signup'
+
       });
-    }
 
-    const previousOtp = await otpCollection.findOne({
-      email: normalizedEmail,
-      purpose: 'signup'
-    });
 
-    if (
-      previousOtp &&
-      previousOtp.lastSentAt &&
-      Date.now() -
-        new Date(previousOtp.lastSentAt).getTime() <
-        60 * 1000
-    ) {
-      return res.status(429).json({
+      await otpCollection.insertOne({
+
+        email:
+          normalizedEmail,
+
+        purpose:
+          'signup',
+
+        otpHash,
+
+        expiresAt:
+          getOtpExpiry(),
+
+        lastSentAt:
+          new Date(),
+
+        createdAt:
+          new Date()
+
+      });
+
+
+      await sendOtpEmail({
+
+        email:
+          normalizedEmail,
+
+        otp:
+          generatedOtp,
+
+        type:
+          'signup'
+
+      });
+
+
+      return res.json({
+
+        message:
+          'A new verification code has been sent.'
+
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        'RESEND SIGNUP OTP ERROR:',
+        error
+      );
+
+
+      return res.status(500).json({
+
         error:
-          'Please wait 60 seconds before requesting another OTP.'
+          'Unable to resend verification code.'
+
       });
+
     }
 
-    const generatedOtp = generateOtp();
-
-    const otpHash = await bcrypt.hash(
-      generatedOtp,
-      10
-    );
-
-    await otpCollection.deleteMany({
-      email: normalizedEmail,
-      purpose: 'signup'
-    });
-
-    await otpCollection.insertOne({
-      email: normalizedEmail,
-      purpose: 'signup',
-      otpHash,
-      expiresAt: getOtpExpiry(),
-      lastSentAt: new Date(),
-      createdAt: new Date()
-    });
-
-    await sendOtpEmail({
-      email: normalizedEmail,
-      otp: generatedOtp,
-      type: 'signup'
-    });
-
-    return res.json({
-      message: 'A new verification code has been sent.'
-    });
-
-  } catch (error) {
-    console.error('RESEND SIGNUP OTP ERROR:', error);
-
-    return res.status(500).json({
-      error: 'Unable to resend verification code.'
-    });
   }
-});
-
-
+);
 /* ============================================================
    LOGIN
    ============================================================ */
 
-router.post('/login', async (req, res) => {
-  try {
-    const {
-      email,
-      password
-    } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: 'Email and password are required.'
-      });
-    }
+router.post(
+  '/login',
+  async (req, res) => {
 
-    const users = getCollection('users');
+    try {
 
-    const normalizedEmail =
-      normalizeEmail(email);
+      const {
+        email,
+        password
+      } = req.body;
 
-    const user = await users.findOne({
-      email: {
-        $regex: `^${escapeRegex(normalizedEmail)}$`,
-        $options: 'i'
+
+      if (!email || !password) {
+
+        return res.status(400).json({
+
+          error:
+            'Email and password are required.'
+
+        });
+
       }
-    });
 
-    if (!user) {
-      return res.status(401).json({
-        error: 'Invalid email or password.'
+
+      const users =
+        getCollection('users');
+
+
+      const normalizedEmail =
+        normalizeEmail(email);
+
+
+      const user =
+        await users.findOne({
+
+          email: {
+
+            $regex:
+              `^${escapeRegex(normalizedEmail)}$`,
+
+            $options:
+              'i'
+
+          }
+
+        });
+
+
+      if (!user) {
+
+        return res.status(401).json({
+
+          error:
+            'Invalid email or password.'
+
+        });
+
+      }
+
+
+      const storedPassword =
+        user.password ||
+        user.passwordHash;
+
+
+      if (!storedPassword) {
+
+        console.error(
+          'LOGIN ERROR: User has no password hash:',
+          user.email
+        );
+
+
+        return res.status(401).json({
+
+          error:
+            'Invalid email or password.'
+
+        });
+
+      }
+
+
+      const valid =
+        await bcrypt.compare(
+
+          String(password),
+
+          storedPassword
+
+        );
+
+
+      if (!valid) {
+
+        return res.status(401).json({
+
+          error:
+            'Invalid email or password.'
+
+        });
+
+      }
+
+
+      const token =
+        signToken(user);
+
+
+      return res.json({
+
+        token,
+
+        user: {
+
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          phone:
+            user.phone || ''
+
+        }
+
       });
-    }
 
-    const storedPassword =
-      user.password ||
-      user.passwordHash;
 
-    if (!storedPassword) {
+    } catch (error) {
+
       console.error(
-        'LOGIN ERROR: User has no password hash:',
-        user.email
+        'LOGIN ERROR:',
+        error
       );
 
-      return res.status(401).json({
-        error: 'Invalid email or password.'
+
+      return res.status(500).json({
+
+        error:
+          'Unable to sign in.'
+
       });
+
     }
 
-    const valid = await bcrypt.compare(
-      String(password),
-      storedPassword
-    );
-
-    if (!valid) {
-      return res.status(401).json({
-        error: 'Invalid email or password.'
-      });
-    }
-
-    const token = signToken(user);
-
-    return res.json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || ''
-      }
-    });
-
-  } catch (error) {
-    console.error('LOGIN ERROR:', error);
-
-    return res.status(500).json({
-      error: 'Unable to sign in.'
-    });
   }
-});
+);
 
 
 /* ============================================================
    FORGOT PASSWORD — SEND OTP
    ============================================================ */
 
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        error: 'Email is required.'
-      });
-    }
+router.post(
+  '/forgot-password',
+  async (req, res) => {
 
-    const normalizedEmail =
-      normalizeEmail(email);
+    try {
 
-    const users = getCollection('users');
-    const otpCollection =
-      getCollection('otpVerifications');
+      const {
+        email
+      } = req.body;
 
-    const user = await users.findOne({
-      email: {
-        $regex: `^${escapeRegex(normalizedEmail)}$`,
-        $options: 'i'
+
+      if (!email) {
+
+        return res.status(400).json({
+
+          error:
+            'Email is required.'
+
+        });
+
       }
-    });
 
-    /*
-     * Do not reveal whether an email exists.
-     */
 
-    if (!user) {
+      const normalizedEmail =
+        normalizeEmail(email);
+
+
+      const users =
+        getCollection('users');
+
+
+      const otpCollection =
+        getCollection('otpVerifications');
+
+
+      const user =
+        await users.findOne({
+
+          email: {
+
+            $regex:
+              `^${escapeRegex(normalizedEmail)}$`,
+
+            $options:
+              'i'
+
+          }
+
+        });
+
+
+      /*
+       * Do not reveal whether an email exists.
+       */
+
+
+      if (!user) {
+
+        return res.json({
+
+          message:
+            'If an account exists with this email, a verification code has been sent.'
+
+        });
+
+      }
+
+
+      const previousOtp =
+        await otpCollection.findOne({
+
+          email:
+            normalizedEmail,
+
+          purpose:
+            'password-reset'
+
+        });
+
+
+      if (
+        previousOtp &&
+        previousOtp.lastSentAt &&
+        Date.now() -
+          new Date(previousOtp.lastSentAt).getTime() <
+          60 * 1000
+      ) {
+
+        return res.status(429).json({
+
+          error:
+            'Please wait 60 seconds before requesting another OTP.'
+
+        });
+
+      }
+
+
+      const generatedOtp =
+        generateOtp();
+
+
+      const otpHash =
+        await bcrypt.hash(
+
+          generatedOtp,
+
+          10
+
+        );
+
+
+      await otpCollection.deleteMany({
+
+        email:
+          normalizedEmail,
+
+        purpose:
+          'password-reset'
+
+      });
+
+
+      await otpCollection.insertOne({
+
+        email:
+          normalizedEmail,
+
+        purpose:
+          'password-reset',
+
+        otpHash,
+
+        expiresAt:
+          getOtpExpiry(),
+
+        lastSentAt:
+          new Date(),
+
+        createdAt:
+          new Date()
+
+      });
+
+
+      await sendOtpEmail({
+
+        email:
+          normalizedEmail,
+
+        otp:
+          generatedOtp,
+
+        type:
+          'password-reset'
+
+      });
+
+
       return res.json({
+
+        requiresOtp:
+          true,
+
         message:
-          'If an account exists with this email, a verification code has been sent.'
+          'If an account exists with this email, a verification code has been sent.',
+
+        email:
+          normalizedEmail
+
       });
-    }
 
-    const previousOtp = await otpCollection.findOne({
-      email: normalizedEmail,
-      purpose: 'password-reset'
-    });
 
-    if (
-      previousOtp &&
-      previousOtp.lastSentAt &&
-      Date.now() -
-        new Date(previousOtp.lastSentAt).getTime() <
-        60 * 1000
-    ) {
-      return res.status(429).json({
+    } catch (error) {
+
+      console.error(
+        'FORGOT PASSWORD ERROR:',
+        error
+      );
+
+
+      return res.status(500).json({
+
         error:
-          'Please wait 60 seconds before requesting another OTP.'
+          'Unable to process password reset request.'
+
       });
+
     }
 
-    const generatedOtp = generateOtp();
-
-    const otpHash = await bcrypt.hash(
-      generatedOtp,
-      10
-    );
-
-    await otpCollection.deleteMany({
-      email: normalizedEmail,
-      purpose: 'password-reset'
-    });
-
-    await otpCollection.insertOne({
-      email: normalizedEmail,
-      purpose: 'password-reset',
-      otpHash,
-      expiresAt: getOtpExpiry(),
-      lastSentAt: new Date(),
-      createdAt: new Date()
-    });
-
-    await sendOtpEmail({
-      email: normalizedEmail,
-      otp: generatedOtp,
-      type: 'password-reset'
-    });
-
-    return res.json({
-      requiresOtp: true,
-      message:
-        'If an account exists with this email, a verification code has been sent.',
-      email: normalizedEmail
-    });
-
-  } catch (error) {
-    console.error(
-      'FORGOT PASSWORD ERROR:',
-      error
-    );
-
-    return res.status(500).json({
-      error:
-        'Unable to process password reset request.'
-    });
   }
-});
+);
 
 
 /* ============================================================
    FORGOT PASSWORD — VERIFY OTP
    ============================================================ */
 
+
 router.post(
   '/forgot-password/verify-otp',
   async (req, res) => {
+
     try {
+
       const {
         email,
         otp
       } = req.body;
 
+
       if (!email || !otp) {
+
         return res.status(400).json({
-          error: 'Email and OTP are required.'
+
+          error:
+            'Email and OTP are required.'
+
         });
+
       }
+
 
       const normalizedEmail =
         normalizeEmail(email);
 
+
       const otpCollection =
         getCollection('otpVerifications');
 
+
       const verification =
         await otpCollection.findOne({
-          email: normalizedEmail,
-          purpose: 'password-reset'
+
+          email:
+            normalizedEmail,
+
+          purpose:
+            'password-reset'
+
         });
 
+
       if (!verification) {
+
         return res.status(400).json({
+
           error:
             'OTP not found or expired. Please request a new OTP.'
+
         });
+
       }
+
 
       if (
         verification.expiresAt &&
         new Date(verification.expiresAt) < new Date()
       ) {
+
         await otpCollection.deleteOne({
-          _id: verification._id
+
+          _id:
+            verification._id
+
         });
 
+
         return res.status(400).json({
+
           error:
             'OTP has expired. Please request a new OTP.'
+
         });
+
       }
+
 
       const validOtp =
         await bcrypt.compare(
+
           String(otp),
+
           verification.otpHash
+
         );
 
+
       if (!validOtp) {
+
         return res.status(400).json({
+
           error:
             'Invalid OTP. Please check the code and try again.'
+
         });
+
       }
 
-      const resetToken = nanoid(40);
+
+      const resetToken =
+        nanoid(40);
+
 
       await otpCollection.updateOne(
+
         {
-          _id: verification._id
+          _id:
+            verification._id
         },
+
         {
           $set: {
-            verified: true,
+
+            verified:
+              true,
+
             resetToken,
-            verifiedAt: new Date(),
+
+            verifiedAt:
+              new Date(),
+
             resetTokenExpiresAt:
               new Date(
-                Date.now() + 15 * 60 * 1000
+
+                Date.now() +
+                15 * 60 * 1000
+
               )
+
           }
+
         }
+
       );
 
+
       return res.json({
-        verified: true,
+
+        verified:
+          true,
+
         resetToken,
+
         message:
           'OTP verified successfully. You can now reset your password.'
+
       });
 
+
     } catch (error) {
+
       console.error(
         'VERIFY RESET OTP ERROR:',
         error
       );
 
+
       return res.status(500).json({
+
         error:
           'Unable to verify OTP.'
+
       });
+
     }
+
   }
 );
 
@@ -919,57 +1563,90 @@ router.post(
    RESET PASSWORD
    ============================================================ */
 
+
 router.post(
   '/reset-password',
   async (req, res) => {
+
     try {
+
       const {
         email,
         resetToken,
         newPassword
       } = req.body;
 
+
       if (
         !email ||
         !resetToken ||
         !newPassword
       ) {
+
         return res.status(400).json({
+
           error:
             'Email, reset token and new password are required.'
+
         });
+
       }
 
-      if (String(newPassword).length < 6) {
+
+      if (
+        String(newPassword).length < 6
+      ) {
+
         return res.status(400).json({
+
           error:
             'Password must be at least 6 characters.'
+
         });
+
       }
+
 
       const normalizedEmail =
         normalizeEmail(email);
 
+
       const otpCollection =
         getCollection('otpVerifications');
+
 
       const users =
         getCollection('users');
 
+
       const verification =
         await otpCollection.findOne({
-          email: normalizedEmail,
-          purpose: 'password-reset',
+
+          email:
+            normalizedEmail,
+
+          purpose:
+            'password-reset',
+
           resetToken,
-          verified: true
+
+          verified:
+            true
+
         });
 
+
       if (!verification) {
+
         return res.status(400).json({
+
           error:
             'Invalid or expired password reset session.'
+
         });
+
       }
+
 
       if (
         !verification.resetTokenExpiresAt ||
@@ -977,66 +1654,117 @@ router.post(
           verification.resetTokenExpiresAt
         ) < new Date()
       ) {
+
         await otpCollection.deleteOne({
-          _id: verification._id
+
+          _id:
+            verification._id
+
         });
 
+
         return res.status(400).json({
+
           error:
             'Password reset session has expired. Please start again.'
+
         });
+
       }
+
 
       const hashedPassword =
         await bcrypt.hash(
+
           String(newPassword),
+
           10
+
         );
+
 
       const result =
         await users.updateOne(
+
           {
+
             email: {
+
               $regex:
                 `^${escapeRegex(normalizedEmail)}$`,
-              $options: 'i'
+
+              $options:
+                'i'
+
             }
+
           },
+
           {
+
             $set: {
-              password: hashedPassword,
-              updatedAt: new Date()
+
+              password:
+                hashedPassword,
+
+              updatedAt:
+                new Date()
+
             }
+
           }
+
         );
 
+
       if (result.matchedCount === 0) {
+
         return res.status(404).json({
-          error: 'User not found.'
+
+          error:
+            'User not found.'
+
         });
+
       }
 
+
       await otpCollection.deleteOne({
-        _id: verification._id
+
+        _id:
+          verification._id
+
       });
+
 
       return res.json({
-        success: true,
+
+        success:
+          true,
+
         message:
           'Password reset successfully. You can now sign in with your new password.'
+
       });
 
+
     } catch (error) {
+
       console.error(
         'RESET PASSWORD ERROR:',
         error
       );
 
+
       return res.status(500).json({
+
         error:
           'Unable to reset password.'
+
       });
+
     }
+
   }
 );
 
@@ -1045,47 +1773,203 @@ router.post(
    CURRENT USER
    ============================================================ */
 
+
 router.get(
   '/me',
   requireAuth,
   async (req, res) => {
+
     try {
+
       const users =
         getCollection('users');
 
+
       const user =
         await users.findOne({
-          id: req.user.id
+
+          id:
+            req.user.id
+
         });
+
 
       if (!user) {
+
         return res.status(404).json({
-          error: 'User not found.'
+
+          error:
+            'User not found.'
+
         });
+
       }
 
+
       return res.json({
+
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone || ''
+
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          phone:
+            user.phone || ''
+
         }
+
       });
 
+
     } catch (error) {
+
       console.error(
         'GET ME ERROR:',
         error
       );
 
+
       return res.status(500).json({
+
         error:
           'Unable to load your account.'
+
       });
+
     }
+
   }
 );
+
+
+/* ============================================================
+   RESEND EMAIL TRANSPORT HEALTH CHECK
+   ============================================================
+
+   This helper route is intentionally lightweight.
+
+   It does not send an email.
+
+   It only confirms that the server has loaded the
+   Resend API key configuration.
+
+   ============================================================ */
+
+
+router.get(
+  '/email-status',
+  async (req, res) => {
+
+    try {
+
+      const configured =
+        Boolean(resendApiKey);
+
+
+      return res.json({
+
+        configured,
+
+        provider:
+          configured
+            ? 'resend'
+            : 'not-configured',
+
+        from:
+          EMAIL_FROM
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        'EMAIL STATUS ERROR:',
+        error
+      );
+
+
+      return res.status(500).json({
+
+        error:
+          'Unable to check email configuration.'
+
+      });
+
+    }
+
+  }
+);
+
+
+/* ============================================================
+   RESEND CONFIGURATION NOTES
+   ============================================================
+
+   The email transport for this route has been migrated
+   from Nodemailer/SMTP to Resend.
+
+   Required environment variable:
+
+   RESEND_API_KEY=re_...
+
+   Optional sender variable:
+
+   RESEND_FROM=Astha Silver <info@aasthasilver.in>
+
+   If RESEND_FROM is not provided, the existing SMTP_FROM
+   variable is used as a compatibility fallback.
+
+   The actual email sender must be a domain that has been
+   verified in Resend.
+
+   For Astha Silver the verified sender is:
+
+   info@aasthasilver.in
+
+   ============================================================ */
+
+
+/* ============================================================
+   SECURITY NOTES
+   ============================================================
+
+   OTP values are never stored as plain text.
+
+   Signup OTPs are hashed with bcrypt.
+
+   Password-reset OTPs are also hashed with bcrypt.
+
+   OTP expiry remains ten minutes.
+
+   OTP resend throttling remains sixty seconds.
+
+   Password reset sessions expire after fifteen minutes.
+
+   ============================================================ */
+
+
+/* ============================================================
+   ERROR HANDLING NOTES
+   ============================================================
+
+   Resend errors are caught by the existing route-level
+   try/catch blocks.
+
+   This means frontend requests receive a JSON error instead
+   of an unhandled server exception.
+
+   ============================================================ */
+
+
+/* ============================================================
+   END OF AUTH ROUTES
+   ============================================================ */
 
 
 export default router;

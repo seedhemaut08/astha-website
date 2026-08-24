@@ -79,7 +79,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 html,
@@ -247,8 +247,8 @@ main {
 
   background: rgba(5, 5, 5, 0.76);
 
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  backdrop-filter: blur(8px) saturate(110%);
+  -webkit-backdrop-filter: blur(8px) saturate(110%);
 
   border-bottom: 1px solid transparent;
 
@@ -1177,9 +1177,14 @@ main {
 
   min-width: 155px;
 
-  backdrop-filter: blur(6px);
+  /*
+    Reduced blur from the original 6px.
+    Keeps the glass appearance while reducing
+    compositor work.
+  */
 
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .home-hero__button--secondary:hover {
@@ -1189,6 +1194,7 @@ main {
 
   transform: translateY(-3px);
 }
+
 
 /* ============================================================
    HOMEPAGE HERO RESPONSIVE
@@ -1290,6 +1296,7 @@ main {
       This prevents the white edge/seam from
       appearing on the right side.
     */
+
     background-size: cover;
     background-position: 54% center;
 
@@ -1998,10 +2005,15 @@ main {
 
 .chip:hover {
   border-color:
-    rgba(255, 255, 255, 0.3);
+    var(--line-strong);
 
-  color: var(--ivory);
+  color:
+    var(--silver-light);
+
+  background:
+    rgba(255, 255, 255, 0.04);
 }
+
 
 .chip.is-active {
   background: var(--silver-light);
@@ -2998,32 +3010,7 @@ textarea:focus {
 .about-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(220px, 1fr)
-    );
-
-  gap: 2rem;
-
-  margin: 3rem 0;
-}
-
-.about-block {
-  text-align: center;
-
-  padding: 1.5rem;
-}
-
-.about-quote {
-  text-align: center;
-
-  max-width: 620px;
-
-  margin:
-    2rem auto
-    0;
-}
+  }
 
 .about-quote blockquote {
   font-family: var(--font-display);
@@ -3747,282 +3734,6 @@ textarea:focus {
    ============================================================ */
 
 /* ============================================================
-   FINAL FIX — CURRENT Home.jsx COMPATIBILITY
-   ============================================================
-   The current Home.jsx uses:
-   .hero
-   .hero__image
-   .hero__overlay
-   .hero__gradient
-   .hero__content
-   .hero__title
-   .hero__subtitle
-   .hero__actions
-
-   These rules make the current JSX work correctly while keeping
-   the rest of the existing site CSS intact.
-   ============================================================ */
-
-
-/* ------------------------------------------------------------
-   CURRENT HERO WRAPPER
-   ------------------------------------------------------------ */
-
-.hero {
-  position: relative;
-  width: 100%;
-  min-height: min(calc(100vh - 82px), 790px);
-  height: min(calc(100vh - 82px), 790px);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  isolation: isolate;
-  background: #050505;
-}
-
-
-/* ------------------------------------------------------------
-   FULL HERO IMAGE
-   ------------------------------------------------------------ */
-
-.hero__image {
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-
-  width: 100%;
-  height: 100%;
-  max-width: none;
-
-  object-fit: cover;
-  object-position: 53% center;
-
-  transform: scale(1.035);
-
-  user-select: none;
-  -webkit-user-drag: none;
-
-  transition: transform 1.2s ease;
-}
-
-
-/* ------------------------------------------------------------
-   DARK LEFT-SIDE OVERLAY
-   Keeps the image visible while making the text readable.
-   ------------------------------------------------------------ */
-
-.hero__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.91) 0%,
-      rgba(0, 0, 0, 0.76) 25%,
-      rgba(0, 0, 0, 0.34) 54%,
-      rgba(0, 0, 0, 0.06) 100%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.18) 0%,
-      rgba(0, 0, 0, 0.02) 52%,
-      rgba(0, 0, 0, 0.40) 100%
-    );
-}
-
-
-/* ------------------------------------------------------------
-   SUBTLE CINEMATIC GRADIENT
-   ------------------------------------------------------------ */
-
-.hero__gradient {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-
-  background:
-    radial-gradient(
-      ellipse 55% 70% at 74% 50%,
-      rgba(255, 255, 255, 0.045),
-      transparent 68%
-    );
-}
-
-
-/* ------------------------------------------------------------
-   HERO CONTENT — LEFT SIDE ONLY
-   ------------------------------------------------------------ */
-
-.hero__content {
-  position: relative;
-  z-index: 2;
-
-  width: min(620px, 100%);
-
-  margin-left: max(
-    4.5vw,
-    calc((100vw - 1450px) / 2)
-  );
-
-  padding: 3rem 1.5rem 3rem 0;
-}
-
-
-/* ------------------------------------------------------------
-   HERO TEXT
-   ------------------------------------------------------------ */
-
-.hero__content .eyebrow {
-  color: #d7d7d5;
-  margin-bottom: 1.15rem;
-  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.75);
-}
-
-.hero__title {
-  margin: 0;
-
-  max-width: 650px;
-
-  color: #f4f3ef;
-
-  font-family: var(--font-display);
-  font-size: clamp(3.3rem, 5.3vw, 5.4rem);
-  font-weight: 500;
-  line-height: 0.98;
-  letter-spacing: -0.025em;
-
-  text-shadow: 0 3px 28px rgba(0, 0, 0, 0.7);
-}
-
-.hero__title em {
-  color: #c9c9c9;
-  font-style: italic;
-  font-weight: 500;
-
-  text-shadow:
-    0 3px 30px rgba(255, 255, 255, 0.12);
-}
-
-.hero__subtitle {
-  max-width: 535px;
-
-  margin: 2rem 0 0;
-
-  color: #e5e4e0;
-
-  font-family: bold var(--font-body);
-  font-size: 1rem;
-  line-height: 1.85;
-  letter-spacing: 0.005em;
-
-  text-shadow:
-    0 2px 15px rgba(0, 0, 0, 0.82);
-}
-
-
-.hero__subtitle--bold{
-  font-weight: 700;
-  font-family: bold var(--font-body);
-  color: white;
-}
-
-.hero-para{
-  color: #d8dbde;
-}
-
-
-/* ------------------------------------------------------------
-   HERO BUTTONS
-   Silver / neutral — NO GOLD
-   ------------------------------------------------------------ */
-
-.hero__actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  margin-top: 2.25rem;
-
-  flex-wrap: wrap;
-}
-
-.hero .btn {
-  min-height: 54px;
-  padding: 0.85rem 1.8rem;
-
-  border-radius: 999px;
-
-  font-family: var(--font-body);
-  font-size: 0.92rem;
-  font-weight: 600;
-
-  transition:
-    transform var(--transition),
-    background var(--transition),
-    border-color var(--transition),
-    color var(--transition),
-    box-shadow var(--transition);
-}
-
-
-/* Primary silver button */
-
-.hero .btn--primary {
-  min-width: 255px;
-
-  background: #eeeeec !important;
-  border: 1px solid #eeeeec !important;
-
-  color: #0a0a0a !important;
-
-  box-shadow:
-    0 12px 35px rgba(0, 0, 0, 0.28);
-}
-
-.hero .btn--primary:hover {
-  background: #ffffff !important;
-  border-color: #ffffff !important;
-
-  color: #000000 !important;
-
-  transform: translateY(-3px);
-
-  box-shadow:
-    0 16px 45px rgba(0, 0, 0, 0.42);
-}
-
-
-/* Secondary transparent silver button */
-
-.hero .btn--outline {
-  min-width: 155px;
-
-  background: rgba(0, 0, 0, 0.18) !important;
-
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-
-  color: #f1f1ef !important;
-
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.hero .btn--outline:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-
-  border-color: rgba(255, 255, 255, 0.72) !important;
-
-  color: #ffffff !important;
-
-  transform: translateY(-3px);
-}
-
-
-/* ============================================================
    FINAL NAVBAR — COMPACT + PROFESSIONAL
    ============================================================ */
 
@@ -4067,6 +3778,195 @@ textarea:focus {
 .navbar__cta {
   padding: 0.58em 1.3em;
   font-size: 0.8rem;
+}
+
+
+/* ============================================================
+   CURRENT HOME.JSX HERO — BASE STRUCTURE
+   (Home.jsx renders class="hero" with an <img class="hero__image">
+   inside, not the older background-image .home-hero block above.
+   These base rules were missing, which is why the hero text and
+   buttons were falling BELOW the image instead of overlaying it.)
+   ============================================================ */
+
+.hero {
+  position: relative;
+
+  width: 100%;
+
+  min-height: min(
+    calc(100vh - 112px),
+    790px
+  );
+
+  height: min(
+    calc(100vh - 112px),
+    790px
+  );
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+
+  isolation: isolate;
+
+  background: #050505;
+}
+
+.hero__image {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: -3;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: 51.5% center;
+
+  transform: scale(1.025);
+
+  transition: transform 1.2s ease;
+}
+
+.hero__overlay {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: -2;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.92) 0%,
+      rgba(0, 0, 0, 0.78) 25%,
+      rgba(0, 0, 0, 0.38) 53%,
+      rgba(0, 0, 0, 0.08) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.22) 0%,
+      rgba(0, 0, 0, 0.02) 50%,
+      rgba(0, 0, 0, 0.48) 100%
+    );
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+
+  width: min(100%, 500px);
+
+  margin-left: max(
+    4.5vw,
+    calc((100vw - 1450px) / 2)
+  );
+
+  padding: 3rem 1.5rem 3rem 0;
+}
+
+.hero__content .eyebrow {
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
+}
+
+.hero__title {
+  margin: 0;
+
+  color: #f4f3ef;
+
+  font-family: var(--font-display);
+
+  font-size: clamp(
+    3.3rem,
+    5.3vw,
+    5.4rem
+  );
+
+  font-weight: 500;
+
+  line-height: 0.98;
+
+  letter-spacing: -0.025em;
+
+  max-width: 430px;
+
+  text-shadow:
+    0 3px 28px rgba(0, 0, 0, 0.65);
+}
+
+.hero__title em {
+  font-style: italic;
+
+  font-weight: 500;
+
+  color: #c9c9c9;
+
+  text-shadow:
+    0 3px 30px rgba(255, 255, 255, 0.12);
+}
+
+.hero__subtitle {
+  max-width: 430px;
+
+  margin: 2rem 0 0;
+
+  color: rgba(232, 232, 230, 0.72);
+
+  font-family: var(--font-body);
+
+  font-size: 1rem;
+
+  line-height: 1.85;
+
+  letter-spacing: 0.005em;
+
+  text-shadow:
+    0 2px 15px rgba(0, 0, 0, 0.8);
+}
+
+.hero__actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  margin-top: 2.25rem;
+
+  flex-wrap: wrap;
+}
+
+.hero .btn {
+  min-height: 58px;
+
+  padding: 0.85rem 1.8rem;
+
+  border-radius: 999px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-family: var(--font-body);
+
+  font-size: 0.92rem;
+
+  font-weight: 600;
+
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    box-shadow var(--transition);
 }
 
 
@@ -4315,6 +4215,7 @@ textarea:focus {
 /* ============================================================
    END — CURRENT Home.jsx FIXES
    ============================================================ */
+
 /* ============================================================
    FINAL HOMEPAGE TEXT WRAP + BUTTON HOVER FIX
    ============================================================ */
@@ -4347,6 +4248,7 @@ textarea:focus {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+
   transition:
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
@@ -4360,7 +4262,9 @@ textarea:focus {
   background: #ffffff;
   color: #050505;
   border-color: #ffffff;
+
   transform: translateY(-4px);
+
   box-shadow:
     0 14px 35px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.18);
@@ -4376,7 +4280,9 @@ textarea:focus {
   color: #050505;
 }
 
+
 /* Tablet */
+
 @media (max-width: 1200px) {
   .home-hero__content {
     width: min(100%, 470px);
@@ -4387,7 +4293,9 @@ textarea:focus {
   }
 }
 
+
 /* Mobile: use the full available width again */
+
 @media (max-width: 600px) {
   .home-hero__content {
     width: 100%;
@@ -4399,7 +4307,9 @@ textarea:focus {
   }
 }
 
+
 /* Respect reduced-motion preferences */
+
 @media (prefers-reduced-motion: reduce) {
   .home-hero__button {
     transition: none;
@@ -4410,6 +4320,7 @@ textarea:focus {
     transform: none;
   }
 }
+
 
 /* ============================================================
    FINAL HERO LINK HOVER
@@ -4442,6 +4353,7 @@ textarea:focus {
 
 
 /* HOVER */
+
 .hero a[href="/shop"]:hover,
 .hero a[href="/about"]:hover {
   background: #ffffff !important;
@@ -4459,10 +4371,12 @@ textarea:focus {
 
 
 /* TEXT INSIDE LINK */
+
 .hero a[href="/shop"]:hover *,
 .hero a[href="/about"]:hover * {
   color: #000000 !important;
 }
+
 
 /* ============================================================
    DEVOTION 3D FLIP CARDS
@@ -4500,6 +4414,7 @@ textarea:focus {
 
 
 /* Remove the old tile hover movement */
+
 .category-tile:hover {
   transform: none;
   border-color: transparent;
@@ -4969,17 +4884,18 @@ textarea:focus {
     min-height: 420px;
   }
 
-  /*
-   * Desktop only:
-   * hover-capable devices trigger the flip.
-   */
+}
 
-  @media (hover: hover) {
 
-    .category-tile:hover .medallion__card {
-      transform: rotateY(180deg);
-    }
+/*
+ * Desktop only:
+ * hover-capable devices trigger the flip.
+ */
 
+@media (min-width: 901px) and (hover: hover) {
+
+  .category-tile:hover .medallion__card {
+    transform: rotateY(180deg);
   }
 
 }
@@ -5024,7 +4940,6 @@ textarea:focus {
 
     aspect-ratio: 9 / 16;
   }
-
 
   /*
    * On phones the little button becomes visible.
@@ -5103,56 +5018,99 @@ textarea:focus {
   }
 
 }
+
+
 /* ============================================================
    PRODUCT IMAGE GALLERY
    ============================================================ */
 
 .product-detail__gallery {
   width: 100%;
+
   display: flex;
+
   flex-direction: column;
+
   gap: 0.9rem;
 }
 
 .product-detail__main-image {
   position: relative !important;
+
   width: 100% !important;
+
   height: auto !important;
+
   min-height: 0 !important;
+
   aspect-ratio: 4 / 3 !important;
+
   overflow: hidden !important;
+
   background: #050505 !important;
-  border: 1px solid rgba(255,255,255,.16) !important;
+
+  border:
+    1px solid rgba(255,255,255,.16) !important;
+
   border-radius: 24px !important;
-  box-shadow: 0 22px 60px rgba(0,0,0,.38) !important;
+
+  box-shadow:
+    0 22px 60px
+    rgba(0,0,0,.38) !important;
 }
 
 .product-detail__main-image img {
   width: 100%;
+
   height: 100%;
+
   object-fit: contain;
+
   display: block;
 }
 
 .product-detail__gallery-arrow {
   position: absolute;
+
   top: 50%;
-  transform: translateY(-50%);
+
+  transform:
+    translateY(-50%);
+
   z-index: 3;
+
   width: 46px;
   height: 46px;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.22);
+
   border-radius: 50%;
-  background: rgba(5, 5, 5, 0.72);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+
+  background:
+    rgba(5, 5, 5, 0.72);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
   color: var(--ivory);
+
   font-size: 1.55rem;
+
   line-height: 1;
+
   cursor: pointer;
+
   transition:
     background var(--transition),
     border-color var(--transition),
@@ -5160,8 +5118,11 @@ textarea:focus {
 }
 
 .product-detail__gallery-arrow:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.55);
+  background:
+    rgba(255, 255, 255, 0.12);
+
+  border-color:
+    rgba(255, 255, 255, 0.55);
 }
 
 .product-detail__gallery-arrow--prev {
@@ -5174,20 +5135,34 @@ textarea:focus {
 
 .product-detail__gallery-thumbs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 0.7rem;
 }
 
 .product-detail__gallery-thumb {
   position: relative;
+
   width: 100%;
+
   aspect-ratio: 1 / 1;
+
   padding: 0;
+
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+
+  border:
+    1px solid var(--line);
+
+  border-radius:
+    var(--radius-md);
+
   background: #0b0c0e;
+
   cursor: pointer;
+
   transition:
     border-color var(--transition),
     transform var(--transition),
@@ -5197,43 +5172,65 @@ textarea:focus {
 
 .product-detail__gallery-thumb img {
   width: 100%;
+
   height: 100%;
+
   object-fit: cover;
+
   display: block;
 }
 
 .product-detail__gallery-thumb:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.45);
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(255, 255, 255, 0.45);
 }
 
 .product-detail__gallery-thumb.is-active {
-  border-color: var(--silver-bright);
+  border-color:
+    var(--silver-bright);
+
   box-shadow:
     0 0 0 1px var(--silver-bright),
-    0 8px 24px rgba(255, 255, 255, 0.08);
+    0 8px 24px
+    rgba(255, 255, 255, 0.08);
 }
 
 .product-detail__gallery-thumb.is-active::after {
   content: '';
+
   position: absolute;
+
   inset: 0;
+
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.35);
+
   border-radius: inherit;
 }
 
 @media (max-width: 860px) {
+
   .product-detail {
     grid-template-columns: 1fr;
+
     gap: 2.5rem;
   }
 
   .product-detail__media {
     position: static;
+
     aspect-ratio: auto;
+
     overflow: visible;
+
     background: transparent;
+
     border: none;
   }
 
@@ -5244,11 +5241,16 @@ textarea:focus {
   .product-detail__main-image {
     aspect-ratio: 1 / 1;
   }
+
 }
 
 @media (max-width: 560px) {
+
   .product-detail {
-    padding: 2rem 1rem 4rem;
+    padding:
+      2rem
+      1rem
+      4rem;
   }
 
   .product-detail__gallery {
@@ -5262,6 +5264,7 @@ textarea:focus {
   .product-detail__gallery-arrow {
     width: 40px;
     height: 40px;
+
     font-size: 1.3rem;
   }
 
@@ -5272,6 +5275,7 @@ textarea:focus {
   .product-detail__gallery-arrow--next {
     right: 0.65rem;
   }
+
 }
 
 
@@ -5282,61 +5286,111 @@ textarea:focus {
 
 .product-detail__media {
   width: 100% !important;
+
   aspect-ratio: auto !important;
+
   background: transparent !important;
+
   border: none !important;
+
   border-radius: 0 !important;
+
   overflow: visible !important;
+
   display: block !important;
+
   position: sticky !important;
+
   top: 100px !important;
 }
 
 .product-detail__gallery {
   width: 100% !important;
+
   display: flex !important;
+
   flex-direction: column !important;
+
   gap: 0.9rem !important;
+
   background: transparent !important;
 }
 
 .product-detail__main-image {
   position: relative !important;
+
   width: 100% !important;
+
   aspect-ratio: 9 / 16 !important;
+
   overflow: hidden !important;
+
   background: #08090a !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.18) !important;
+
   border-radius: 24px !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35) !important;
+
+  box-shadow:
+    0 20px 50px
+    rgba(0, 0, 0, 0.35) !important;
 }
 
 .product-detail__main-image img {
   width: 100% !important;
+
   height: 100% !important;
+
   display: block !important;
+
   object-fit: cover !important;
+
   object-position: center !important;
 }
 
 .product-detail__gallery-arrow {
   position: absolute !important;
+
   top: 50% !important;
-  transform: translateY(-50%) !important;
+
+  transform:
+    translateY(-50%) !important;
+
   z-index: 10 !important;
+
   width: 48px !important;
+
   height: 48px !important;
+
   display: flex !important;
+
   align-items: center !important;
+
   justify-content: center !important;
+
   padding: 0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.28) !important;
+
   border-radius: 50% !important;
-  background: rgba(5, 5, 5, 0.65) !important;
+
+  background:
+    rgba(5, 5, 5, 0.65) !important;
+
   color: #fff !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+
+  backdrop-filter:
+    blur(10px) !important;
+
+  -webkit-backdrop-filter:
+    blur(10px) !important;
+
   cursor: pointer !important;
+
   transition:
     background 0.3s ease,
     border-color 0.3s ease,
@@ -5344,9 +5398,15 @@ textarea:focus {
 }
 
 .product-detail__gallery-arrow:hover {
-  background: rgba(255, 255, 255, 0.14) !important;
-  border-color: rgba(255, 255, 255, 0.65) !important;
-  transform: translateY(-50%) scale(1.06) !important;
+  background:
+    rgba(255, 255, 255, 0.14) !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.65) !important;
+
+  transform:
+    translateY(-50%)
+    scale(1.06) !important;
 }
 
 .product-detail__gallery-arrow--prev {
@@ -5359,26 +5419,46 @@ textarea:focus {
 
 .product-detail__gallery-thumbs {
   width: 100% !important;
+
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 0.75rem !important;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr)) !important;
+
+  gap: .75rem !important;
+
   margin: 0 !important;
+
   padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
+
+  visibility: visible !important;
+
+  opacity: 1 !important;
 }
 
 .product-detail__gallery-thumb {
   position: relative !important;
+
   width: 100% !important;
+
   aspect-ratio: 9 / 16 !important;
+
   padding: 0 !important;
+
   overflow: hidden !important;
+
   background: #090a0b !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 14px !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.16) !important;
+
+  border-radius: 13px !important;
+
   cursor: pointer !important;
-  opacity: 0.72;
+
+  opacity: .72 !important;
+
   transition:
     transform 0.3s ease,
     opacity 0.3s ease,
@@ -5388,61 +5468,89 @@ textarea:focus {
 
 .product-detail__gallery-thumb img {
   width: 100% !important;
+
   height: 100% !important;
+
   display: block !important;
+
   object-fit: cover !important;
+
   object-position: center !important;
 }
 
 .product-detail__gallery-thumb:hover {
   opacity: 1 !important;
-  transform: translateY(-3px) !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
+
+  transform:
+    translateY(-3px) !important;
+
+  border-color:
+    rgba(255, 255, 255, 0.55) !important;
 }
 
 .product-detail__gallery-thumb.is-active {
   opacity: 1 !important;
+
   border-color: #fff !important;
+
   box-shadow:
     0 0 0 1px #fff,
-    0 8px 24px rgba(255, 255, 255, 0.08) !important;
+    0 8px 24px
+    rgba(255, 255, 255, 0.08) !important;
 }
 
 .product-detail__gallery-thumb.is-active::after {
   content: '';
+
   position: absolute;
+
   inset: 0;
+
   pointer-events: none;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.45);
+
   border-radius: inherit;
 }
 
 @media (min-width: 901px) {
+
   .product-detail__media {
     position: sticky !important;
+
     top: 100px !important;
   }
 
   .product-detail__gallery {
     width: 100% !important;
+
     max-width: 560px !important;
+
     margin: 0 auto !important;
   }
+
 }
 
 @media (max-width: 900px) {
+
   .product-detail__media {
     position: static !important;
+
     width: 100% !important;
   }
 
   .product-detail__gallery {
     max-width: 560px !important;
+
     margin: 0 auto !important;
   }
+
 }
 
 @media (max-width: 560px) {
+
   .product-detail__main-image {
     border-radius: 18px !important;
   }
@@ -5461,6 +5569,7 @@ textarea:focus {
 
   .product-detail__gallery-arrow {
     width: 40px !important;
+
     height: 40px !important;
   }
 
@@ -5471,99 +5580,189 @@ textarea:focus {
   .product-detail__gallery-arrow--next {
     right: 9px !important;
   }
+
 }
+
+
 /* ============================================================
    ASTHA — FINAL PRODUCT DETAIL GALLERY FIX
    ============================================================ */
 
 /* Product page layout */
+
 .product-detail {
   width: min(100%, 1500px) !important;
+
   margin: 0 auto !important;
-  padding: 2rem 3.5rem 5rem !important;
+
+  padding:
+    2rem
+    3.5rem
+    5rem !important;
+
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-  gap: clamp(2rem, 4vw, 5rem) !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr) !important;
+
+  gap:
+    clamp(
+      2rem,
+      4vw,
+      5rem
+    ) !important;
+
   align-items: start !important;
 }
 
+
 /* Left gallery area */
+
 .product-detail__media {
   width: 100% !important;
+
   min-width: 0 !important;
+
   position: sticky !important;
+
   top: 100px !important;
+
   overflow: visible !important;
+
   background: transparent !important;
+
   border: 0 !important;
+
   border-radius: 0 !important;
 }
 
+
 /* Hide any old medallion/video/flip box if an older JSX is still cached */
+
 .product-detail__medallion-box {
   display: none !important;
 }
 
 .product-detail__gallery {
   width: 100% !important;
+
   max-width: 100% !important;
+
   margin: 0 !important;
+
   display: flex !important;
+
   flex-direction: column !important;
+
   gap: 0.9rem !important;
 }
 
+
 /* Main image = ONE complete box */
+
 .product-detail__main-image {
   position: relative !important;
+
   width: 100% !important;
+
   height: min(68vh, 650px) !important;
+
   min-height: 480px !important;
+
   aspect-ratio: auto !important;
+
   overflow: hidden !important;
+
   background: #050505 !important;
-  border: 1px solid rgba(255,255,255,.16) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.16) !important;
+
   border-radius: 24px !important;
-  box-shadow: 0 22px 60px rgba(0,0,0,.38) !important;
+
+  box-shadow:
+    0 22px 60px
+    rgba(0,0,0,.38) !important;
 }
 
+
 /* FORCE every main image to fill the entire box */
+
 .product-detail__main-image-img,
 .product-detail__main-image > img {
   position: absolute !important;
+
   inset: 0 !important;
+
   width: 100% !important;
+
   height: 100% !important;
+
   min-width: 0 !important;
+
   min-height: 0 !important;
+
   max-width: none !important;
+
   display: block !important;
+
   object-fit: contain !important;
+
   object-position: center center !important;
+
   background: #050505 !important;
 }
 
+
 /* Arrows */
+
 .product-detail__gallery-arrow {
   position: absolute !important;
+
   top: 50% !important;
+
   z-index: 20 !important;
+
   width: 54px !important;
+
   height: 54px !important;
+
   padding: 0 !important;
-  transform: translateY(-50%) !important;
+
+  transform:
+    translateY(-50%) !important;
+
   display: flex !important;
+
   align-items: center !important;
+
   justify-content: center !important;
-  border: 1px solid rgba(255,255,255,.30) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.30) !important;
+
   border-radius: 50% !important;
-  background: rgba(0,0,0,.58) !important;
+
+  background:
+    rgba(0,0,0,.58) !important;
+
   color: #fff !important;
+
   font-size: 2rem !important;
+
   line-height: 1 !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+
+  backdrop-filter:
+    blur(12px) !important;
+
+  -webkit-backdrop-filter:
+    blur(12px) !important;
+
   opacity: 1 !important;
+
   visibility: visible !important;
 }
 
@@ -5576,64 +5775,114 @@ textarea:focus {
 }
 
 .product-detail__gallery-arrow:hover {
-  background: rgba(255,255,255,.14) !important;
-  border-color: rgba(255,255,255,.72) !important;
-  transform: translateY(-50%) scale(1.06) !important;
+  background:
+    rgba(255,255,255,.14) !important;
+
+  border-color:
+    rgba(255,255,255,.72) !important;
+
+  transform:
+    translateY(-50%)
+    scale(1.06) !important;
 }
 
+
 /* FOUR thumbnails outside the main box */
+
 .product-detail__gallery-thumbs {
   width: 100% !important;
+
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    ) !important;
+
   gap: .75rem !important;
+
   margin: 0 !important;
+
   padding: 0 !important;
+
   visibility: visible !important;
+
   opacity: 1 !important;
 }
 
+
 /* Small thumbnail boxes */
+
 .product-detail__gallery-thumb {
   position: relative !important;
+
   width: 100% !important;
+
   height: 105px !important;
+
   min-width: 0 !important;
+
   padding: 0 !important;
+
   overflow: hidden !important;
+
   background: #090909 !important;
-  border: 1px solid rgba(255,255,255,.14) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.14) !important;
+
   border-radius: 13px !important;
+
   cursor: pointer !important;
+
   opacity: .72 !important;
+
   visibility: visible !important;
+
   display: block !important;
 }
 
 .product-detail__gallery-thumb img {
   position: absolute !important;
+
   inset: 0 !important;
+
   width: 100% !important;
+
   height: 100% !important;
+
   max-width: none !important;
+
   display: block !important;
+
   object-fit: cover !important;
+
   object-position: center !important;
 }
 
 .product-detail__gallery-thumb:hover {
   opacity: 1 !important;
-  transform: translateY(-3px) !important;
-  border-color: rgba(255,255,255,.55) !important;
+
+  transform:
+    translateY(-3px) !important;
+
+  border-color:
+    rgba(255,255,255,.55) !important;
 }
 
 .product-detail__gallery-thumb.is-active {
   opacity: 1 !important;
+
   border-color: #fff !important;
+
   box-shadow:
     0 0 0 1px #fff,
-    0 8px 25px rgba(255,255,255,.08) !important;
+    0 8px 25px
+    rgba(255,255,255,.08) !important;
 }
+
 
 /* ============================================================
    WEIGHT — PERMANENTLY HIDDEN ON EVERY PRODUCT PAGE
@@ -5644,38 +5893,60 @@ textarea:focus {
 .product-detail__weight,
 .product-weight {
   display: none !important;
+
   visibility: hidden !important;
 }
 
+
 /* Since Weight is gone, use a clean 2-column spec layout */
+
 .product-detail__specs {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    ) !important;
+
   gap: 0 !important;
 }
 
+
 /* Product information */
+
 .product-detail__info {
   min-width: 0 !important;
 }
+
 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 
 @media (max-width: 1100px) {
+
   .product-detail {
     padding-left: 2rem !important;
+
     padding-right: 2rem !important;
+
     gap: 2.5rem !important;
   }
 
 }
 
+
 @media (max-width: 900px) {
+
   .product-detail {
     grid-template-columns: 1fr !important;
-    padding: 1.5rem 1.25rem 4rem !important;
+
+    padding:
+      1.5rem
+      1.25rem
+      4rem !important;
+
     gap: 2rem !important;
   }
 
@@ -5685,19 +5956,27 @@ textarea:focus {
 
 }
 
+
 @media (max-width: 600px) {
+
   .product-detail {
-    padding: 1rem .85rem 3rem !important;
+    padding:
+      1rem
+      .85rem
+      3rem !important;
   }
 
   .product-detail__main-image {
     aspect-ratio: 4 / 3 !important;
+
     border-radius: 18px !important;
   }
 
   .product-detail__gallery-arrow {
     width: 42px !important;
+
     height: 42px !important;
+
     font-size: 1.5rem !important;
   }
 
@@ -5715,12 +5994,15 @@ textarea:focus {
 
   .product-detail__gallery-thumb {
     height: 78px !important;
+
     border-radius: 10px !important;
   }
 
   .product-detail__specs {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns:
+      1fr 1fr !important;
   }
+
 }
 
 
@@ -5730,17 +6012,24 @@ textarea:focus {
 
 .product-detail .product-detail__main-image {
   aspect-ratio: 4 / 3 !important;
+
   height: auto !important;
+
   min-height: 0 !important;
+
   max-height: none !important;
+
   overflow: hidden !important;
 }
 
 .product-detail .product-detail__main-image > img,
 .product-detail .product-detail__main-image .product-detail__main-image-img {
   width: 100% !important;
+
   height: 100% !important;
+
   object-fit: contain !important;
+
   object-position: center !important;
 }
 
@@ -5750,74 +6039,114 @@ textarea:focus {
    ============================================================ */
 
 /* Pricing row */
+
 .product-detail__pricing {
-  margin: 24px 0 30px !important;
+  margin:
+    24px 0 30px !important;
 }
 
 .product-detail__price-row {
   display: flex !important;
+
   align-items: center !important;
+
   gap: 14px !important;
+
   flex-wrap: wrap !important;
 }
 
+
 /* ORIGINAL / MRP — crossed price first */
+
 .product-detail__mrp {
   order: 1 !important;
 
-  font-family: var(--font-display) !important;
+  font-family:
+    var(--font-display) !important;
+
   font-size: 1.25rem !important;
+
   color: #777673 !important;
 
-  text-decoration: line-through !important;
-  text-decoration-thickness: 1.5px !important;
-  text-decoration-color: #777673 !important;
+  text-decoration:
+    line-through !important;
+
+  text-decoration-thickness:
+    1.5px !important;
+
+  text-decoration-color:
+    #777673 !important;
 
   white-space: nowrap !important;
 }
 
+
 /* OFFER / SELLING PRICE — second */
+
 .product-detail__price {
   order: 2 !important;
 
-  font-family: var(--font-display) !important;
+  font-family:
+    var(--font-display) !important;
+
   font-size: 2.35rem !important;
+
   font-weight: 600 !important;
 
-  color: var(--silver-light) !important;
+  color:
+    var(--silver-light) !important;
 
   white-space: nowrap !important;
 }
 
+
 /* DISCOUNT */
+
 .product-detail__discount {
   order: 3 !important;
 
   display: inline-flex !important;
+
   align-items: center !important;
+
   justify-content: center !important;
 
-  padding: 5px 9px !important;
+  padding:
+    5px 9px !important;
 
   border-radius: 5px !important;
 
-  background: rgba(201, 162, 75, 0.12) !important;
-  border: 1px solid rgba(201, 162, 75, 0.35) !important;
+  background:
+    rgba(201, 162, 75, 0.12) !important;
 
-  color: var(--gold-light) !important;
+  border:
+    1px solid
+    rgba(201, 162, 75, 0.35) !important;
 
-  font-family: var(--font-body) !important;
+  color:
+    var(--gold-light) !important;
+
+  font-family:
+    var(--font-body) !important;
+
   font-size: 0.76rem !important;
+
   font-weight: 700 !important;
+
   letter-spacing: 0.04em !important;
 
   white-space: nowrap !important;
 }
 
+
 /* Tax text */
+
 .product-detail__tax {
   margin-top: 9px !important;
-  color: var(--text-faint) !important;
+
+  color:
+    var(--text-faint) !important;
+
   font-size: 0.8rem !important;
 }
 
@@ -5828,34 +6157,47 @@ textarea:focus {
 
 .product-detail__actions {
   display: flex !important;
+
   align-items: center !important;
+
   gap: 0.8rem !important;
+
   flex-wrap: wrap !important;
+
   margin-bottom: 1.5rem !important;
 }
 
+
 /* Added to cart button */
+
 .product-detail__added-btn {
-  background: linear-gradient(
-    135deg,
-    var(--gold-light),
-    var(--gold)
-  ) !important;
+  background:
+    linear-gradient(
+      135deg,
+      var(--gold-light),
+      var(--gold)
+    ) !important;
 
   color: #17130a !important;
 
-  border: 1px solid var(--gold-light) !important;
+  border:
+    1px solid
+    var(--gold-light) !important;
 
   opacity: 1 !important;
 
   cursor: default !important;
 
-  box-shadow: var(--shadow-gold) !important;
+  box-shadow:
+    var(--shadow-gold) !important;
 }
 
+
 /* Don't make disabled Added button look faded */
+
 .product-detail__added-btn:disabled {
   opacity: 1 !important;
+
   cursor: default !important;
 }
 
@@ -5866,21 +6208,31 @@ textarea:focus {
 
 .btn--secondary {
   display: inline-flex !important;
+
   align-items: center !important;
+
   justify-content: center !important;
 
-  padding: 0.95em 1.45em !important;
+  padding:
+    0.95em
+    1.45em !important;
 
   border-radius: 999px !important;
 
   background: transparent !important;
 
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.28) !important;
 
-  color: var(--silver-light) !important;
+  color:
+    var(--silver-light) !important;
 
-  font-family: var(--font-body) !important;
+  font-family:
+    var(--font-body) !important;
+
   font-size: 0.88rem !important;
+
   font-weight: 600 !important;
 
   white-space: nowrap !important;
@@ -5893,11 +6245,17 @@ textarea:focus {
 }
 
 .btn--secondary:hover {
-  background: rgba(163, 65, 76, 0.14) !important;
-  border-color: var(--maroon-light) !important;
-  color: #f0b8bd !important;
+  background:
+    rgba(163, 65, 76, 0.14) !important;
 
-  transform: translateY(-2px) !important;
+  border-color:
+    var(--maroon-light) !important;
+
+  color:
+    #f0b8bd !important;
+
+  transform:
+    translateY(-2px) !important;
 }
 
 
@@ -5907,20 +6265,31 @@ textarea:focus {
 
 .btn--checkout {
   display: inline-flex !important;
+
   align-items: center !important;
+
   justify-content: center !important;
 
-  padding: 0.95em 1.5em !important;
+  padding:
+    0.95em
+    1.5em !important;
 
   border-radius: 999px !important;
 
-  background: var(--silver-light) !important;
-  border: 1px solid var(--silver-light) !important;
+  background:
+    var(--silver-light) !important;
+
+  border:
+    1px solid
+    var(--silver-light) !important;
 
   color: #111 !important;
 
-  font-family: var(--font-body) !important;
+  font-family:
+    var(--font-body) !important;
+
   font-size: 0.88rem !important;
+
   font-weight: 700 !important;
 
   white-space: nowrap !important;
@@ -5932,12 +6301,15 @@ textarea:focus {
 }
 
 .btn--checkout:hover {
-  background: #ffffff !important;
+  background:
+    #ffffff !important;
 
-  transform: translateY(-2px) !important;
+  transform:
+    translateY(-2px) !important;
 
   box-shadow:
-    0 12px 35px rgba(255, 255, 255, 0.12) !important;
+    0 12px 35px
+    rgba(255, 255, 255, 0.12) !important;
 }
 
 
@@ -5974,6 +6346,7 @@ textarea:focus {
 
   .product-detail__actions {
     width: 100% !important;
+
     align-items: stretch !important;
   }
 
@@ -5988,6 +6361,7 @@ textarea:focus {
   .btn--checkout {
     min-width: 100% !important;
   }
+
 }
 
 @media (max-width: 450px) {
@@ -6006,18 +6380,14 @@ textarea:focus {
 
   .product-detail__discount {
     font-size: 0.7rem !important;
-    padding: 4px 7px !important;
+
+    padding:
+      4px 7px !important;
   }
 
-  .product-detail__actions {
-    flex-direction: column !important;
-  }
-
-  .product-detail__actions .qty-stepper {
-    align-self: flex-start !important;
-  }
-
-  .product-detail__actions > button {
-    width: 100% !important;
-  }
 }
+
+
+/* ============================================================
+   END OF INDEX.CSS
+   ============================================================ */

@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import { Link } from 'react-router-dom';
+
 import { motion } from 'framer-motion';
 
 import { api } from '../api';
+
 import ProductCard from '../components/ProductCard.jsx';
 import ProductMedallion from '../components/ProductMedallion.jsx';
 import SectionDivider from '../components/SectionDivider.jsx';
@@ -116,12 +123,18 @@ const getFeaturedProducts = (allProducts) => {
         return false;
       }
 
-      return normalizeCategory(product.category) === targetCategory;
+      return (
+        normalizeCategory(product.category) ===
+        targetCategory
+      );
     });
 
     if (matchingProduct) {
       selectedProducts.push(matchingProduct);
-      usedProductIds.add(matchingProduct.id);
+
+      usedProductIds.add(
+        matchingProduct.id
+      );
     }
   });
 
@@ -149,7 +162,9 @@ export default function Home() {
       try {
         const response = await api.get('/products');
 
-        const allProducts = Array.isArray(response?.products)
+        const allProducts = Array.isArray(
+          response?.products
+        )
           ? response.products
           : [];
 
@@ -172,13 +187,17 @@ export default function Home() {
          * Featured Edit cards.
          */
 
-        const featuredProducts = getFeaturedProducts(allProducts);
+        const featuredProducts =
+          getFeaturedProducts(allProducts);
 
         if (isMounted) {
           setProducts(featuredProducts);
         }
       } catch (error) {
-        console.error('Failed to load featured products:', error);
+        console.error(
+          'Failed to load featured products:',
+          error
+        );
 
         if (isMounted) {
           setProducts([]);
@@ -196,6 +215,27 @@ export default function Home() {
       isMounted = false;
     };
   }, []);
+
+
+  /* ==========================================================
+     MEMOIZED FEATURED PRODUCTS
+     ==========================================================
+
+     Featured products are already selected before being stored
+     in state. This memo also gives React a stable derived value
+     instead of recalculating the selection during every render.
+
+     This is a lightweight optimization and does not change the
+     existing product selection logic.
+     ========================================================== */
+
+  const featuredProducts = useMemo(() => {
+    if (!Array.isArray(products)) {
+      return [];
+    }
+
+    return products;
+  }, [products]);
 
 
   /* ==========================================================
@@ -218,12 +258,20 @@ export default function Home() {
 
             Image:
             public/images/HP SILVER.png
+
+            Performance:
+            This image is the main above-the-fold visual,
+            therefore the browser should fetch it with high
+            priority.
         ==================================================== */}
 
         <img
           src="/images/HP%20SILVER.png"
           alt="Astha Silver handcrafted collection"
           className="hero__image"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
 
 
@@ -463,7 +511,7 @@ export default function Home() {
             label="Curating the collection..."
           />
 
-        ) : products.length === 0 ? (
+        ) : featuredProducts.length === 0 ? (
 
           <p className="empty-state">
             No featured products available yet.
@@ -474,7 +522,7 @@ export default function Home() {
           <div className="product-grid">
 
 
-            {products.map((product) => (
+            {featuredProducts.map((product) => (
 
               <ProductCard
                 key={product.id}
@@ -588,3 +636,4 @@ export default function Home() {
     </div>
   );
 }
+

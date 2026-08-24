@@ -1,227 +1,442 @@
 import {
   createContext,
+  useCallback,
   useContext,
-  useState,
-  useEffect
+  useEffect,
+  useMemo,
+  useState
 } from 'react';
 
 import { api } from '../api';
 
+
+/*
+=========================================================
+AUTH CONTEXT
+=========================================================
+*/
+
 const AuthContext = createContext(null);
 
+
+/*
+=========================================================
+AUTH PROVIDER
+=========================================================
+*/
+
 export function AuthProvider({ children }) {
+
+  /*
+  ========================================================
+  USER STATE
+  ========================================================
+  */
+
   const [user, setUser] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+
+  /*
+  ========================================================
+  AUTH LOADING STATE
+  ========================================================
+  */
+
+  const [loading, setLoading] =
+    useState(true);
+
+
+  /*
+  ========================================================
+  RESTORE AUTHENTICATION
+  ========================================================
+
+  On application startup:
+
+  1. Check for the saved authentication token.
+  2. If there is no token, stop loading immediately.
+  3. If a token exists, ask the backend for the current user.
+  4. If the token is invalid, remove it.
+  ========================================================
+  */
 
   useEffect(() => {
-    const token = localStorage.getItem('astha_token');
+
+    let isMounted = true;
+
+
+    const token =
+      localStorage.getItem(
+        'astha_token'
+      );
+
+
+    /*
+    ======================================================
+    NO TOKEN
+    ======================================================
+    */
 
     if (!token) {
-      setLoading(false);
-      return;
+
+      if (isMounted) {
+        setLoading(false);
+      }
+
+      return () => {
+        isMounted = false;
+      };
     }
 
-    api.get('/auth/me')
+
+    /*
+    ======================================================
+    RESTORE USER
+    ======================================================
+    */
+
+    api
+      .get('/auth/me')
       .then(({ user }) => {
-        setUser(user);
+
+        if (isMounted) {
+          setUser(user);
+        }
+
       })
       .catch(() => {
-        localStorage.removeItem('astha_token');
-        setUser(null);
+
+        /*
+        Invalid/expired token.
+        */
+
+        localStorage.removeItem(
+          'astha_token'
+        );
+
+        if (isMounted) {
+          setUser(null);
+        }
+
       })
       .finally(() => {
-        setLoading(false);
+
+        if (isMounted) {
+          setLoading(false);
+        }
+
       });
+
+
+    /*
+    ======================================================
+    CLEANUP
+    ======================================================
+    */
+
+    return () => {
+      isMounted = false;
+    };
+
   }, []);
 
 
-  /* ============================================================
-     LOGIN
-     ============================================================ */
+  /*
+  ========================================================
+  LOGIN
+  ========================================================
+  */
 
-  async function login(email, password) {
-    const { token, user } = await api.post(
-      '/auth/login',
-      {
-        email,
-        password
-      }
-    );
+  const login = useCallback(
+    async (
+      email,
+      password
+    ) => {
 
-    localStorage.setItem(
-      'astha_token',
-      token
-    );
-
-    setUser(user);
-
-    return {
-      token,
-      user
-    };
-  }
+      const {
+        token,
+        user
+      } = await api.post(
+        '/auth/login',
+        {
+          email,
+          password
+        }
+      );
 
 
-  /* ============================================================
-     SIGNUP — SEND OTP
-     ============================================================ */
+      /*
+      Save authentication token.
+      */
 
-  async function signup(
-    name,
-    email,
-    password,
-    phone
-  ) {
-    const response = await api.post(
-      '/auth/register',
-      {
-        name,
-        email,
-        password,
-        phone
-      }
-    );
-
-    /*
-     * New signup flow:
-     * Backend sends OTP first.
-     * Account is NOT created until OTP verification.
-     */
-
-    return response;
-  }
+      localStorage.setItem(
+        'astha_token',
+        token
+      );
 
 
-  /* ============================================================
-     SIGNUP — VERIFY OTP
-     ============================================================ */
+      /*
+      Update current user.
+      */
 
-  async function verifySignupOtp(
-    name,
-    email,
-    password,
-    phone,
-    otp
-  ) {
-    const response = await api.post(
-      '/auth/register',
-      {
+      setUser(user);
+
+
+      return {
+        token,
+        user
+      };
+
+    },
+    []
+  );
+
+
+  /*
+  ========================================================
+  SIGNUP — SEND OTP
+  ========================================================
+  */
+
+  const signup = useCallback(
+    async (
+      name,
+      email,
+      password,
+      phone
+    ) => {
+
+      const response =
+        await api.post(
+          '/auth/register',
+          {
+            name,
+            email,
+            password,
+            phone
+          }
+        );
+
+
+      /*
+      New signup flow:
+
+      Backend sends OTP first.
+
+      Account is NOT created until
+      OTP verification.
+      */
+
+      return response;
+
+    },
+    []
+  );
+
+
+  /*
+  ========================================================
+  SIGNUP — VERIFY OTP
+  ========================================================
+  */
+
+  const verifySignupOtp =
+    useCallback(
+      async (
         name,
         email,
         password,
         phone,
         otp
-      }
+      ) => {
+
+        const response =
+          await api.post(
+            '/auth/register',
+            {
+              name,
+              email,
+              password,
+              phone,
+              otp
+            }
+          );
+
+
+        /*
+        Backend creates the account only after
+        successful OTP verification.
+        */
+
+        const {
+          token,
+          user
+        } = response;
+
+
+        /*
+        Save token when backend returns one.
+        */
+
+        if (token) {
+
+          localStorage.setItem(
+            'astha_token',
+            token
+          );
+
+        }
+
+
+        /*
+        Update authenticated user.
+        */
+
+        if (user) {
+          setUser(user);
+        }
+
+
+        return response;
+
+      },
+      []
     );
 
-    /*
-     * Backend creates the account only after
-     * successful OTP verification.
-     */
 
-    const {
-      token,
-      user
-    } = response;
+  /*
+  ========================================================
+  RESEND SIGNUP OTP
+  ========================================================
+  */
 
-    if (token) {
-      localStorage.setItem(
-        'astha_token',
-        token
-      );
-    }
+  const resendSignupOtp =
+    useCallback(
+      async (email) => {
 
-    if (user) {
-      setUser(user);
-    }
+        return api.post(
+          '/auth/register/resend-otp',
+          {
+            email
+          }
+        );
 
-    return response;
-  }
-
-
-  /* ============================================================
-     RESEND SIGNUP OTP
-     ============================================================ */
-
-  async function resendSignupOtp(email) {
-    return await api.post(
-      '/auth/register/resend-otp',
-      {
-        email
-      }
+      },
+      []
     );
-  }
 
 
-  /* ============================================================
-     FORGOT PASSWORD — SEND OTP
-     ============================================================ */
+  /*
+  ========================================================
+  FORGOT PASSWORD — SEND OTP
+  ========================================================
+  */
 
-  async function forgotPassword(email) {
-    return await api.post(
-      '/auth/forgot-password',
-      {
-        email
-      }
+  const forgotPassword =
+    useCallback(
+      async (email) => {
+
+        return api.post(
+          '/auth/forgot-password',
+          {
+            email
+          }
+        );
+
+      },
+      []
     );
-  }
 
 
-  /* ============================================================
-     FORGOT PASSWORD — VERIFY OTP
-     ============================================================ */
+  /*
+  ========================================================
+  FORGOT PASSWORD — VERIFY OTP
+  ========================================================
+  */
 
-  async function verifyPasswordResetOtp(
-    email,
-    otp
-  ) {
-    return await api.post(
-      '/auth/forgot-password/verify-otp',
-      {
+  const verifyPasswordResetOtp =
+    useCallback(
+      async (
         email,
         otp
-      }
+      ) => {
+
+        return api.post(
+          '/auth/forgot-password/verify-otp',
+          {
+            email,
+            otp
+          }
+        );
+
+      },
+      []
     );
-  }
 
 
-  /* ============================================================
-     RESET PASSWORD
-     ============================================================ */
+  /*
+  ========================================================
+  RESET PASSWORD
+  ========================================================
+  */
 
-  async function resetPassword(
-    email,
-    resetToken,
-    newPassword
-  ) {
-    return await api.post(
-      '/auth/reset-password',
-      {
+  const resetPassword =
+    useCallback(
+      async (
         email,
         resetToken,
         newPassword
-      }
+      ) => {
+
+        return api.post(
+          '/auth/reset-password',
+          {
+            email,
+            resetToken,
+            newPassword
+          }
+        );
+
+      },
+      []
     );
-  }
 
 
-  /* ============================================================
-     LOGOUT
-     ============================================================ */
+  /*
+  ========================================================
+  LOGOUT
+  ========================================================
+  */
 
-  function logout() {
-    localStorage.removeItem(
-      'astha_token'
-    );
+  const logout =
+    useCallback(() => {
 
-    setUser(null);
-  }
+      localStorage.removeItem(
+        'astha_token'
+      );
+
+      setUser(null);
+
+    }, []);
 
 
-  return (
-    <AuthContext.Provider
-      value={{
+  /*
+  ========================================================
+  MEMOIZED CONTEXT VALUE
+  ========================================================
+
+  Without useMemo, this object would be recreated on every
+  AuthProvider render.
+
+  Memoizing it helps prevent unnecessary renders in components
+  that consume AuthContext when the actual authentication data
+  has not changed.
+  ========================================================
+  */
+
+  const contextValue =
+    useMemo(
+      () => ({
         user,
         loading,
 
@@ -236,14 +451,56 @@ export function AuthProvider({ children }) {
         resetPassword,
 
         logout
-      }}
+      }),
+      [
+        user,
+        loading,
+
+        login,
+
+        signup,
+        verifySignupOtp,
+        resendSignupOtp,
+
+        forgotPassword,
+        verifyPasswordResetOtp,
+        resetPassword,
+
+        logout
+      ]
+    );
+
+
+  /*
+  ========================================================
+  PROVIDER
+  ========================================================
+  */
+
+  return (
+
+    <AuthContext.Provider
+      value={contextValue}
     >
+
       {children}
+
     </AuthContext.Provider>
+
   );
 }
 
 
+/*
+=========================================================
+USE AUTH HOOK
+=========================================================
+*/
+
 export function useAuth() {
-  return useContext(AuthContext);
+
+  return useContext(
+    AuthContext
+  );
+
 }

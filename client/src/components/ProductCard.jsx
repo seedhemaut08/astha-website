@@ -1,6 +1,14 @@
+import {
+  memo,
+  useCallback,
+} from 'react';
+
 import { Link } from 'react-router-dom';
+
 import { useCart } from '../context/CartContext.jsx';
+
 import ProductMedallion from './ProductMedallion.jsx';
+
 
 /*
 =========================================================
@@ -27,11 +35,45 @@ Supports:
 6. Add to Cart
 
 7. Product detail navigation
+
+8. Render optimization
+   React.memo prevents unnecessary re-renders when the
+   product object has not changed.
 =========================================================
 */
 
-export default function ProductCard({ product }) {
+
+/*
+=========================================================
+PRODUCT CARD COMPONENT
+=========================================================
+*/
+
+function ProductCardComponent({ product }) {
+
+  /*
+  ========================================================
+  CART CONTEXT
+  ========================================================
+  */
+
   const { addToCart } = useCart();
+
+
+  /*
+  ========================================================
+  SAFETY CHECK
+  ========================================================
+
+  Prevent the entire product grid from crashing if an
+  unexpected empty/null product reaches the component.
+  ========================================================
+  */
+
+  if (!product) {
+    return null;
+  }
+
 
   /*
   ========================================================
@@ -39,12 +81,20 @@ export default function ProductCard({ product }) {
   ========================================================
   */
 
-  const handleAddToCart = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleAddToCart = useCallback(
+    (event) => {
 
-    addToCart(product);
-  };
+      event.preventDefault();
+      event.stopPropagation();
+
+      addToCart(product);
+
+    },
+    [
+      addToCart,
+      product
+    ]
+  );
 
 
   /*
@@ -54,7 +104,6 @@ export default function ProductCard({ product }) {
   */
 
   const hasProductImage =
-    product?.image &&
     typeof product.image === 'string' &&
     product.image.trim() !== '';
 
@@ -66,9 +115,57 @@ export default function ProductCard({ product }) {
   */
 
   const hasProductVideo =
-    product?.video &&
     typeof product.video === 'string' &&
     product.video.trim() !== '';
+
+
+  /*
+  ========================================================
+  PRODUCT ID
+  ========================================================
+  */
+
+  const productId = product.id;
+
+
+  /*
+  ========================================================
+  PRODUCT NAME
+  ========================================================
+  */
+
+  const productName =
+    product.name || 'Product';
+
+
+  /*
+  ========================================================
+  PRODUCT CATEGORY
+  ========================================================
+  */
+
+  const productCategory =
+    product.category || 'Collection';
+
+
+  /*
+  ========================================================
+  PRODUCT PRICE
+  ========================================================
+  */
+
+  const productPrice =
+    Number(product.price || 0);
+
+
+  /*
+  ========================================================
+  PRODUCT STOCK
+  ========================================================
+  */
+
+  const isOutOfStock =
+    product.inStock === false;
 
 
   /*
@@ -80,45 +177,56 @@ export default function ProductCard({ product }) {
   return (
     <div className="product-card">
 
+
       {/* ==================================================
           PRODUCT MEDIA
       ================================================== */}
 
       <Link
-        to={`/product/${product.id}`}
+        to={`/product/${productId}`}
         className="product-card__media"
-        aria-label={`View ${product.name}`}
+        aria-label={`View ${productName}`}
       >
 
-        {/*
-        ====================================================
-        IMPORTANT
 
-        ProductMedallion is ALWAYS used.
+        {/* =================================================
+            PRODUCT MEDALLION
 
-        This is important because ProductMedallion handles:
+            ProductMedallion handles:
 
-        FRONT
-        → Product image
+            FRONT
+            → Product image
 
-        HOVER
-        → Card flips
+            HOVER / CLICK
+            → Card flips
 
-        BACK
-        → Product video
+            BACK
+            → Product video
 
-        If product has no individual image/video,
-        ProductMedallion automatically uses the category
-        fallback media.
-        ====================================================
-        */}
+            IMPORTANT PERFORMANCE BEHAVIOR:
+
+            ProductMedallion now loads the video only when
+            the user interacts with the card.
+
+            This prevents product/category videos from
+            downloading unnecessarily during initial page
+            load.
+        ================================================== */}
 
         <ProductMedallion
-          category={product.category}
-          name={product.name}
+          category={productCategory}
+          name={productName}
           size="md"
-          image={hasProductImage ? product.image : undefined}
-          video={hasProductVideo ? product.video : undefined}
+          image={
+            hasProductImage
+              ? product.image
+              : undefined
+          }
+          video={
+            hasProductVideo
+              ? product.video
+              : undefined
+          }
         />
 
       </Link>
@@ -136,7 +244,7 @@ export default function ProductCard({ product }) {
         ================================================= */}
 
         <span className="product-card__category">
-          {product.category}
+          {productCategory}
         </span>
 
 
@@ -145,10 +253,10 @@ export default function ProductCard({ product }) {
         ================================================= */}
 
         <Link
-          to={`/product/${product.id}`}
+          to={`/product/${productId}`}
           className="product-card__name"
         >
-          {product.name}
+          {productName}
         </Link>
 
 
@@ -176,7 +284,7 @@ export default function ProductCard({ product }) {
 
           <span className="product-card__price">
             ₹
-            {Number(product.price || 0).toLocaleString('en-IN')}
+            {productPrice.toLocaleString('en-IN')}
           </span>
 
 
@@ -188,9 +296,9 @@ export default function ProductCard({ product }) {
             type="button"
             className="btn btn--ghost btn--sm"
             onClick={handleAddToCart}
-            disabled={product.inStock === false}
+            disabled={isOutOfStock}
           >
-            {product.inStock === false
+            {isOutOfStock
               ? 'Out of Stock'
               : 'Add to Cart'}
           </button>
@@ -198,8 +306,37 @@ export default function ProductCard({ product }) {
 
         </div>
 
+
       </div>
+
 
     </div>
   );
 }
+
+
+/*
+=========================================================
+MEMOIZED PRODUCT CARD
+=========================================================
+
+React.memo prevents ProductCard from rendering again when
+its parent renders but the product reference has not changed.
+
+This is particularly useful in product grids where multiple
+cards are displayed together.
+=========================================================
+*/
+
+const ProductCard = memo(
+  ProductCardComponent
+);
+
+
+/*
+=========================================================
+EXPORT
+=========================================================
+*/
+
+export default ProductCard;
