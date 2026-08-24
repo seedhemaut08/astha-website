@@ -337,11 +337,69 @@ main {
    ASTHA — ORDER CANCELLATION UI
    ============================================================ */
 
-/* Account error message */
+/* ----------------------------------------------------------------
+   ERROR
+---------------------------------------------------------------- */
+
 .account-error {
-  margin-bottom: 1.5rem;
-  padding: 0.9rem 1rem;
-  border-radius: var(--radius-md);
+  background: rgba(217, 83, 79, 0.1);
+  border: 1px solid rgba(217, 83, 79, 0.4);
+  color: #f0a7a4;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  margin-bottom: 24px;
+}
+
+
+/* ----------------------------------------------------------------
+   SECTION HEAD
+---------------------------------------------------------------- */
+
+.account-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.account-section-head h2 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: normal;
+  font-size: 19px;
+  letter-spacing: 0.3px;
+}
+
+/* ----------------------------------------------------------------
+   EMPTY STATE
+---------------------------------------------------------------- */
+
+.account-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--astha-surface);
+  border: 1px dashed var(--astha-border);
+  border-radius: 16px;
+}
+
+.account-empty__mark {
+  color: var(--astha-gold);
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.account-empty h3 {
+  margin: 0 0 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: normal;
+  font-size: 19px;
+}
+
+.account-empty p {
+  margin: 0 0 22px;
+  color: var(--astha-text-muted);
+  font-size: 14px;
 }
 
 
@@ -349,183 +407,327 @@ main {
    ORDER ACTIONS
    ============================================================ */
 
-.order-card__actions {
+/* ----------------------------------------------------------------
+   ORDER LIST / CARDS
+---------------------------------------------------------------- */
+
+.order-list {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  margin-top: 1.2rem;
-  padding-top: 1.1rem;
-
-  border-top: 1px solid var(--line);
+  flex-direction: column;
+  gap: 16px;
 }
 
+.order-card {
+  background: var(--astha-surface);
+  border: 1px solid var(--astha-border);
+  border-radius: 14px;
+  padding: 22px;
+  transition: border-color 0.15s ease;
+}
 
-/* ============================================================
-   CANCEL ORDER BUTTON
-   ============================================================ */
+.order-card:hover {
+  border-color: #3a3a3a;
+}
 
-.btn--danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.order-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--astha-border);
+}
 
-  padding: 0.72rem 1.35rem;
+.order-card__id-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  border-radius: 999px;
+.order-card__label {
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--astha-text-muted);
+}
 
-  background: transparent;
+.order-card__id-block strong {
+  font-size: 15.5px;
+  letter-spacing: 0.2px;
+}
 
-  border: 1px solid rgba(180, 70, 80, 0.65);
+.order-card__date {
+  font-size: 12.5px;
+  color: var(--astha-text-muted);
+  margin-top: 2px;
+}
 
-  color: #e5a3a8;
-
-  font-family: var(--font-body);
-  font-size: 0.82rem;
+.order-status {
+  flex-shrink: 0;
+  font-size: 11.5px;
   font-weight: 600;
-
-  transition:
-    background var(--transition),
-    border-color var(--transition),
-    color var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
-
-.btn--danger:hover {
-  background: rgba(163, 65, 76, 0.14);
-
-  border-color: #c85b65;
-
-  color: #f2c1c5;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 8px 25px rgba(122, 37, 48, 0.18);
+.order-status--placed {
+  background: rgba(215, 173, 79, 0.14);
+  color: var(--astha-gold-soft);
+  border: 1px solid rgba(215, 173, 79, 0.35);
 }
 
-
-.btn--danger:disabled {
-  opacity: 0.55;
-
-  cursor: not-allowed;
-
-  transform: none;
-
-  box-shadow: none;
+.order-status--confirmed,
+.order-status--processing {
+  background: rgba(90, 150, 220, 0.14);
+  color: #8fb8ea;
+  border: 1px solid rgba(90, 150, 220, 0.3);
 }
 
-
-/* ============================================================
-   CANCELLED STATUS
-   ============================================================ */
-
-.order-card__status.cancelled {
-  color: #e5a3a8;
-
-  border-color: rgba(180, 70, 80, 0.55);
-
-  background: rgba(163, 65, 76, 0.08);
+.order-status--shipped,
+.order-status--out-for-delivery {
+  background: rgba(155, 110, 220, 0.14);
+  color: #c3a7f0;
+  border: 1px solid rgba(155, 110, 220, 0.3);
 }
 
-
-/* ============================================================
-   PLACED STATUS
-   ============================================================ */
-
-.order-card__status.placed {
-  color: var(--gold-light);
-
-  border-color: rgba(201, 162, 75, 0.45);
-
-  background: rgba(201, 162, 75, 0.07);
+.order-status--delivered {
+  background: rgba(76, 175, 125, 0.14);
+  color: #7fd3a8;
+  border: 1px solid rgba(76, 175, 125, 0.3);
 }
 
-
-/* ============================================================
-   DELIVERED STATUS
-   ============================================================ */
-
-.order-card__status.delivered {
-  color: #9dd8b0;
-
-  border-color: rgba(75, 160, 100, 0.45);
-
-  background: rgba(75, 160, 100, 0.07);
+.order-status--cancelled {
+  background: rgba(217, 83, 79, 0.12);
+  color: #ec9c99;
+  border: 1px solid rgba(217, 83, 79, 0.3);
 }
 
-
-/* ============================================================
-   CANCELLED MESSAGE
-   ============================================================ */
-
-.order-card__cancelled {
+.order-card__items {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
+.order-card__item {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-
-  gap: 1rem;
-
-  margin-top: 1.2rem;
-
-  padding-top: 1rem;
-
-  border-top: 1px solid var(--line);
-
-  color: #d99ba1;
-
-  font-size: 0.82rem;
+  font-size: 14px;
 }
 
+.order-card__item-name {
+  color: var(--astha-text);
+}
 
-.order-card__cancelled span {
+.order-card__item-qty {
+  color: var(--astha-text-muted);
+  margin-left: 6px;
+  font-size: 13px;
+}
+
+.order-card__item-price {
+  color: var(--astha-text-muted);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.order-card__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--astha-surface-raised);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14.5px;
+  margin-bottom: 4px;
+}
+
+.order-card__total span:first-child {
+  color: var(--astha-text-muted);
+}
+
+.order-card__total span:last-child {
+  color: var(--astha-gold-soft);
   font-weight: 600;
+  font-size: 16px;
 }
 
+/* ----------------------------------------------------------------
+   ACTIONS / CANCEL FLOW
+---------------------------------------------------------------- */
+
+.order-card__actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--astha-border);
+}
+
+.order-card__hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--astha-text-muted);
+}
+
+.order-card__confirm {
+  margin-top: 16px;
+  padding: 16px;
+  border-top: 1px solid var(--astha-border);
+  background: rgba(217, 83, 79, 0.06);
+  border-radius: 10px;
+}
+
+.order-card__confirm p {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+}
+
+.order-card__reason {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  background: var(--astha-bg);
+  border: 1px solid var(--astha-border);
+  border-radius: 8px;
+  color: var(--astha-text);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+
+.order-card__reason:focus {
+  outline: none;
+  border-color: var(--astha-gold);
+}
+
+.order-card__confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.order-card__cancelled {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--astha-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13.5px;
+  color: #ec9c99;
+}
 
 .order-card__cancelled small {
-  color: var(--text-faint);
-
-  font-size: 0.72rem;
+  color: var(--astha-text-muted);
 }
 
+/* ----------------------------------------------------------------
+   BUTTONS
+   (scoped to this page so they don't clash with global .btn rules)
+---------------------------------------------------------------- */
 
-/* ============================================================
-   MOBILE
-   ============================================================ */
+.account-page .btn {
+  font-size: 13.5px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
 
-@media (max-width: 600px) {
+.account-page .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
-  .order-card__actions {
-    justify-content: stretch;
+.account-page .btn:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.account-page .btn--primary {
+  background: var(--astha-gold);
+  color: #131313;
+  font-weight: 600;
+  border: none;
+}
+
+.account-page .btn--primary:not(:disabled):hover {
+  background: var(--astha-gold-soft);
+}
+
+.account-page .btn--danger {
+  background: var(--astha-danger);
+  color: #fff;
+  border: none;
+}
+
+.account-page .btn--danger:not(:disabled):hover {
+  background: #c74440;
+}
+
+.account-page .btn--danger-outline {
+  background: transparent;
+  border: 1px solid rgba(217, 83, 79, 0.5);
+  color: #ec9c99;
+  width: 100%;
+}
+
+.account-page .btn--danger-outline:not(:disabled):hover {
+  background: rgba(217, 83, 79, 0.08);
+}
+
+.account-page .btn--ghost {
+  background: transparent;
+  border: 1px solid var(--astha-border);
+  color: var(--astha-text);
+}
+
+.account-page .btn--ghost:not(:disabled):hover {
+  border-color: #4a4a4a;
+}
+
+/* ----------------------------------------------------------------
+   RESPONSIVE
+---------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .account-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
-  .order-card__actions .btn--danger {
+  .account-logout {
+    align-self: flex-start;
+  }
+
+  .account-summary {
+    flex-wrap: wrap;
+    row-gap: 16px;
+  }
+
+  .account-summary__divider {
+    display: none;
+  }
+
+  .account-summary__stat {
+    flex-basis: 33%;
+  }
+
+  .order-card__confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .order-card__confirm-actions .btn {
     width: 100%;
   }
-
-  .order-card__cancelled {
-    flex-direction: column;
-
-    align-items: flex-start;
-
-    gap: 0.35rem;
-  }
-
 }
-
-.navbar__brand-text {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  letter-spacing: 0.28em;
-  color: var(--ivory);
-  font-weight: 600;
-}
-
-
 /* ============================================================
    NAVBAR LINKS
    ============================================================ */
@@ -2825,30 +3027,166 @@ textarea:focus {
    ACCOUNT PAGE
    ============================================================ */
 
+/* ================================================================
+   ASTHA SILVER — ACCOUNT PAGE
+   ================================================================
+   Palette pulled from the brand's own email templates:
+   near-black surfaces, warm gold accent, serif display type.
+   ================================================================ */
+
 .account-page {
-  max-width: var(--max-width);
+  --astha-bg: #0a0a0a;
+  --astha-surface: #131313;
+  --astha-surface-raised: #181818;
+  --astha-border: #2a2a2a;
+  --astha-gold: #d7ad4f;
+  --astha-gold-soft: #e3bc61;
+  --astha-text: #f2f0eb;
+  --astha-text-muted: #9a9a9a;
+  --astha-danger: #d9534f;
+  --astha-success: #4caf7d;
 
+  max-width: 880px;
   margin: 0 auto;
-
-  padding:
-    3.5rem
-    1.75rem
-    6rem;
+  padding: 48px 20px 80px;
+  color: var(--astha-text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-.account-page__header {
+/* ----------------------------------------------------------------
+   TOAST
+---------------------------------------------------------------- */
+
+.account-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--astha-surface-raised);
+  border: 1px solid var(--astha-gold);
+  color: var(--astha-text);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: astha-toast-in 0.25s ease-out;
+}
+
+@keyframes astha-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+
+.account-header h1 {
+  margin: 0 0 4px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: normal;
+  font-size: 28px;
+  letter-spacing: 0.3px;
+}
+
+.account-header__email {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--astha-text-muted);
+}
+
+
+.account-logout {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--astha-border);
+  color: var(--astha-text);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+
+.account-logout:hover {
+  border-color: var(--astha-gold);
+  color: var(--astha-gold-soft);
+}
+
+
+/* ----------------------------------------------------------------
+   SUMMARY STRIP
+---------------------------------------------------------------- */
+
+.account-summary {
   display: flex;
-
-  justify-content: space-between;
-
-  align-items: flex-start;
-
-  margin-bottom: 3rem;
-
-  flex-wrap: wrap;
-
-  gap: 1rem;
+  align-items: center;
+  background: var(--astha-surface);
+  border: 1px solid var(--astha-border);
+  border-radius: 14px;
+  padding: 20px 8px;
+  margin-bottom: 36px;
 }
+
+.account-summary__stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.account-summary__value {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+  color: var(--astha-gold-soft);
+}
+
+.account-summary__label {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--astha-text-muted);
+}
+
+.account-summary__divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--astha-border);
+}
+
+
+
+.account-avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1c1c1c, #0e0e0e);
+  border: 1px solid var(--astha-gold);
+  color: var(--astha-gold-soft);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+}
+
+.account-eyebrow {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--astha-gold);
+  margin-bottom: 6px;
+}
+
 
 .account-page__section-title {
   margin-bottom: 1.5rem;

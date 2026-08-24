@@ -315,7 +315,103 @@ function getCancellationDeadline(order) {
 
 
 /* ============================================================
-   SEND OWNER ORDER EMAIL
+   BUILD ORDER ITEM ROWS (shared by all owner emails)
+   ============================================================ */
+
+function buildItemRows(items) {
+
+  return items
+
+    .map(item => {
+
+      const quantity =
+        Number(
+          item.quantity
+        ) > 0
+
+          ? Number(
+            item.quantity
+          )
+
+          : 1;
+
+
+      const price =
+        Number(
+          item.price || 0
+        );
+
+
+      const itemTotal =
+        price *
+        quantity;
+
+
+      return `
+      <tr>
+
+        <td style="
+          padding:14px 12px;
+          border-bottom:1px solid #e8e8e8;
+          color:#222;
+          font-size:14px;
+        ">
+          ${escapeHtml(
+        item.name ||
+        'Product'
+      )}
+        </td>
+
+
+        <td style="
+          padding:14px 12px;
+          border-bottom:1px solid #e8e8e8;
+          text-align:center;
+          color:#555;
+          font-size:14px;
+        ">
+          ${quantity}
+        </td>
+
+
+        <td style="
+          padding:14px 12px;
+          border-bottom:1px solid #e8e8e8;
+          text-align:right;
+          color:#222;
+          font-size:14px;
+        ">
+          ₹${price.toLocaleString(
+        'en-IN'
+      )}
+        </td>
+
+
+        <td style="
+          padding:14px 12px;
+          border-bottom:1px solid #e8e8e8;
+          text-align:right;
+          color:#222;
+          font-size:14px;
+          font-weight:600;
+        ">
+          ₹${itemTotal.toLocaleString(
+        'en-IN'
+      )}
+        </td>
+
+      </tr>
+    `;
+
+    })
+
+    .join('');
+
+}
+
+
+/* ============================================================
+   SEND OWNER ORDER EMAIL (NEW ORDER)
    ============================================================ */
 
 async function sendOwnerOrderEmail(order) {
@@ -340,97 +436,8 @@ async function sendOwnerOrderEmail(order) {
         : [];
 
 
-    /* --------------------------------------------------------
-       PRODUCT ROWS
-       -------------------------------------------------------- */
-
     const itemRows =
-      items
-
-        .map(item => {
-
-          const quantity =
-            Number(
-              item.quantity
-            ) > 0
-
-              ? Number(
-                item.quantity
-              )
-
-              : 1;
-
-
-          const price =
-            Number(
-              item.price || 0
-            );
-
-
-          const itemTotal =
-            price *
-            quantity;
-
-
-          return `
-          <tr>
-
-            <td style="
-              padding:14px 12px;
-              border-bottom:1px solid #e8e8e8;
-              color:#222;
-              font-size:14px;
-            ">
-              ${escapeHtml(
-            item.name ||
-            'Product'
-          )}
-            </td>
-
-
-            <td style="
-              padding:14px 12px;
-              border-bottom:1px solid #e8e8e8;
-              text-align:center;
-              color:#555;
-              font-size:14px;
-            ">
-              ${quantity}
-            </td>
-
-
-            <td style="
-              padding:14px 12px;
-              border-bottom:1px solid #e8e8e8;
-              text-align:right;
-              color:#222;
-              font-size:14px;
-            ">
-              ₹${price.toLocaleString(
-            'en-IN'
-          )}
-            </td>
-
-
-            <td style="
-              padding:14px 12px;
-              border-bottom:1px solid #e8e8e8;
-              text-align:right;
-              color:#222;
-              font-size:14px;
-              font-weight:600;
-            ">
-              ₹${itemTotal.toLocaleString(
-            'en-IN'
-          )}
-            </td>
-
-          </tr>
-        `;
-
-        })
-
-        .join('');
+      buildItemRows(items);
 
 
     /* --------------------------------------------------------
@@ -1164,6 +1171,765 @@ ${order.deliveryInstructions || 'None'}
 
 
 /* ============================================================
+   SEND OWNER CANCELLATION EMAIL
+   ============================================================
+
+   Sent to the owner whenever a customer cancels an order
+   from their account page.
+
+   ============================================================ */
+
+async function sendOwnerCancellationEmail(order) {
+
+  try {
+
+    const customer =
+      order.customer || {};
+
+
+    const shipping =
+      order.shippingAddress || {};
+
+
+    const items =
+      Array.isArray(
+        order.items
+      )
+
+        ? order.items
+
+        : [];
+
+
+    const itemRows =
+      buildItemRows(items);
+
+
+    /* --------------------------------------------------------
+       EMAIL SUBJECT
+       -------------------------------------------------------- */
+
+    const subject =
+      `Order Cancelled #${order.id} — ₹${Number(
+        order.total || 0
+      ).toLocaleString(
+        'en-IN'
+      )}`;
+
+
+    /* --------------------------------------------------------
+       PLAIN TEXT EMAIL
+       -------------------------------------------------------- */
+
+    const text = `
+Order Cancelled - Astha Silver
+
+Order ID:
+${order.id}
+
+Cancellation Reason:
+${order.cancellationReason || 'Not specified'}
+
+Cancelled At:
+${new Date(
+      order.cancelledAt || Date.now()
+    ).toLocaleString(
+      'en-IN'
+    )}
+
+Original Order Date:
+${new Date(
+      order.createdAt
+    ).toLocaleString(
+      'en-IN'
+    )}
+
+
+CUSTOMER DETAILS
+
+Name:
+${customer.name || ''}
+
+Email:
+${customer.email || ''}
+
+Phone:
+${customer.phone || ''}
+
+Alternate Phone:
+${customer.alternatePhone || ''}
+
+
+CANCELLED ITEMS
+
+${items
+        .map(item => {
+
+          const quantity =
+            Number(
+              item.quantity
+            ) > 0
+
+              ? Number(
+                item.quantity
+              )
+
+              : 1;
+
+
+          const price =
+            Number(
+              item.price || 0
+            );
+
+
+          return `${item.name || 'Product'} × ${quantity} — ₹${(
+            price *
+            quantity
+          ).toLocaleString(
+            'en-IN'
+          )}`;
+
+        })
+        .join('\n')}
+
+
+TOTAL:
+
+₹${Number(
+          order.total || 0
+        ).toLocaleString(
+          'en-IN'
+        )}
+
+
+SHIPPING ADDRESS
+
+${shipping.street || order.address || ''}
+
+${shipping.city || ''}
+
+${shipping.state || ''}
+
+${shipping.zipCode || ''}
+
+${shipping.country || ''}
+    `.trim();
+
+
+    /* --------------------------------------------------------
+       HTML EMAIL
+       -------------------------------------------------------- */
+
+    const html = `
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    Order Cancelled - Astha Silver
+  </title>
+
+</head>
+
+
+<body style="
+  margin:0;
+  padding:0;
+  background:#f5f5f5;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#222;
+">
+
+
+  <div style="
+    width:100%;
+    padding:35px 15px;
+    box-sizing:border-box;
+  ">
+
+
+    <div style="
+      max-width:700px;
+      margin:0 auto;
+      background:#ffffff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:
+        0 5px 25px
+        rgba(0,0,0,0.08);
+    ">
+
+
+      <!-- HEADER -->
+
+      <div style="
+        background:#111111;
+        padding:32px 30px;
+        text-align:center;
+      ">
+
+        <div style="
+          color:#d6b35a;
+          font-size:30px;
+          font-family:
+            Georgia,
+            'Times New Roman',
+            serif;
+          letter-spacing:1px;
+          margin-bottom:8px;
+        ">
+          Astha
+        </div>
+
+
+        <div style="
+          color:#ffffff;
+          font-size:12px;
+          letter-spacing:3px;
+          text-transform:uppercase;
+        ">
+          Silver Idols
+        </div>
+
+      </div>
+
+
+      <!-- BODY -->
+
+      <div style="
+        padding:30px;
+      ">
+
+
+        <!-- CANCELLED BOX -->
+
+        <div style="
+          background:#fdf1f1;
+          border-left:
+            4px solid #d9534f;
+          padding:18px 20px;
+          border-radius:6px;
+          margin-bottom:28px;
+        ">
+
+          <div style="
+            font-size:20px;
+            font-weight:700;
+            color:#a12622;
+            margin-bottom:6px;
+          ">
+            ❌ Order Cancelled
+          </div>
+
+
+          <div style="
+            font-size:14px;
+            color:#666;
+          ">
+            A customer has cancelled their order.
+          </div>
+
+        </div>
+
+
+        <!-- ORDER INFORMATION -->
+
+        <h2 style="
+          margin:0 0 16px;
+          font-size:18px;
+          color:#222;
+        ">
+          Order Information
+        </h2>
+
+
+        <table style="
+          width:100%;
+          border-collapse:collapse;
+          margin-bottom:30px;
+        ">
+
+          <tr>
+
+            <td style="
+              padding:8px 0;
+              color:#777;
+              font-size:14px;
+            ">
+              Order ID
+            </td>
+
+
+            <td style="
+              padding:8px 0;
+              text-align:right;
+              font-weight:700;
+              font-size:14px;
+            ">
+              ${escapeHtml(
+      order.id
+    )}
+            </td>
+
+          </tr>
+
+
+          <tr>
+
+            <td style="
+              padding:8px 0;
+              color:#777;
+              font-size:14px;
+            ">
+              Status
+            </td>
+
+
+            <td style="
+              padding:8px 0;
+              text-align:right;
+              font-weight:700;
+              color:#a12622;
+              font-size:14px;
+            ">
+              Cancelled
+            </td>
+
+          </tr>
+
+
+          <tr>
+
+            <td style="
+              padding:8px 0;
+              color:#777;
+              font-size:14px;
+            ">
+              Cancellation Reason
+            </td>
+
+
+            <td style="
+              padding:8px 0;
+              text-align:right;
+              font-weight:600;
+              font-size:14px;
+            ">
+              ${escapeHtml(
+      order.cancellationReason ||
+      'Not specified'
+    )}
+            </td>
+
+          </tr>
+
+
+          <tr>
+
+            <td style="
+              padding:8px 0;
+              color:#777;
+              font-size:14px;
+            ">
+              Cancelled At
+            </td>
+
+
+            <td style="
+              padding:8px 0;
+              text-align:right;
+              font-size:14px;
+            ">
+              ${new Date(
+      order.cancelledAt || Date.now()
+    ).toLocaleString(
+      'en-IN'
+    )}
+            </td>
+
+          </tr>
+
+
+          <tr>
+
+            <td style="
+              padding:8px 0;
+              color:#777;
+              font-size:14px;
+            ">
+              Original Order Date
+            </td>
+
+
+            <td style="
+              padding:8px 0;
+              text-align:right;
+              font-size:14px;
+            ">
+              ${new Date(
+      order.createdAt
+    ).toLocaleString(
+      'en-IN'
+    )}
+            </td>
+
+          </tr>
+
+        </table>
+
+
+        <!-- CUSTOMER -->
+
+        <h2 style="
+          margin:0 0 16px;
+          font-size:18px;
+          color:#222;
+        ">
+          Customer Details
+        </h2>
+
+
+        <div style="
+          background:#f8f8f8;
+          border-radius:10px;
+          padding:18px;
+          margin-bottom:30px;
+        ">
+
+
+          <p style="
+            margin:0 0 8px;
+            font-size:14px;
+          ">
+            <strong>Name:</strong>
+            ${escapeHtml(
+      customer.name || ''
+    )}
+          </p>
+
+
+          <p style="
+            margin:0 0 8px;
+            font-size:14px;
+          ">
+            <strong>Email:</strong>
+            ${escapeHtml(
+      customer.email || ''
+    )}
+          </p>
+
+
+          <p style="
+            margin:0 0 8px;
+            font-size:14px;
+          ">
+            <strong>Phone:</strong>
+            ${escapeHtml(
+      customer.phone || ''
+    )}
+          </p>
+
+
+          ${customer.alternatePhone
+        ? `
+                <p style="
+                  margin:0;
+                  font-size:14px;
+                ">
+                  <strong>
+                    Alternate Phone:
+                  </strong>
+
+                  ${escapeHtml(
+          customer.alternatePhone
+        )}
+                </p>
+              `
+        : ''
+      }
+
+
+        </div>
+
+
+        <!-- PRODUCTS -->
+
+        <h2 style="
+          margin:0 0 16px;
+          font-size:18px;
+          color:#222;
+        ">
+          Cancelled Products
+        </h2>
+
+
+        <table style="
+          width:100%;
+          border-collapse:collapse;
+          margin-bottom:18px;
+        ">
+
+          <thead>
+
+            <tr style="
+              background:#f5f5f5;
+            ">
+
+
+              <th style="
+                padding:12px;
+                text-align:left;
+                font-size:12px;
+                color:#666;
+                text-transform:uppercase;
+              ">
+                Product
+              </th>
+
+
+              <th style="
+                padding:12px;
+                text-align:center;
+                font-size:12px;
+                color:#666;
+                text-transform:uppercase;
+              ">
+                Qty
+              </th>
+
+
+              <th style="
+                padding:12px;
+                text-align:right;
+                font-size:12px;
+                color:#666;
+                text-transform:uppercase;
+              ">
+                Price
+              </th>
+
+
+              <th style="
+                padding:12px;
+                text-align:right;
+                font-size:12px;
+                color:#666;
+                text-transform:uppercase;
+              ">
+                Total
+              </th>
+
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            ${itemRows}
+
+          </tbody>
+
+        </table>
+
+
+        <!-- TOTAL -->
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          background:#111111;
+          color:#ffffff;
+          padding:18px 20px;
+          border-radius:8px;
+          margin-bottom:30px;
+        ">
+
+          <span style="
+            font-size:16px;
+            font-weight:600;
+          ">
+            Order Total
+          </span>
+
+
+          <span style="
+            color:#d6b35a;
+            font-size:20px;
+            font-weight:700;
+          ">
+            ₹${Number(
+        order.total || 0
+      ).toLocaleString(
+        'en-IN'
+      )}
+          </span>
+
+        </div>
+
+
+        <!-- SHIPPING ADDRESS -->
+
+        <h2 style="
+          margin:0 0 16px;
+          font-size:18px;
+          color:#222;
+        ">
+          Shipping Address
+        </h2>
+
+
+        <div style="
+          background:#f8f8f8;
+          border-radius:10px;
+          padding:18px;
+          margin-bottom:30px;
+          line-height:1.7;
+          font-size:14px;
+          color:#444;
+        ">
+
+          <div>
+            ${escapeHtml(
+        shipping.street ||
+        order.address ||
+        ''
+      )}
+          </div>
+
+
+          <div>
+            ${escapeHtml(
+        shipping.city ||
+        ''
+      )}
+          </div>
+
+
+          <div>
+            ${escapeHtml(
+        shipping.state ||
+        ''
+      )}
+          </div>
+
+
+          <div>
+            ${escapeHtml(
+        shipping.zipCode ||
+        ''
+      )}
+          </div>
+
+
+          <div>
+            ${escapeHtml(
+        shipping.country ||
+        ''
+      )}
+          </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div style="
+          border-top:1px solid #eeeeee;
+          padding-top:20px;
+          color:#888888;
+          font-size:12px;
+          line-height:1.6;
+          text-align:center;
+        ">
+
+          This email was automatically generated
+          by the Astha Silver website.
+
+
+          <br />
+
+
+          ${escapeHtml(
+        OFFICIAL_EMAIL
+      )}
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+</body>
+
+</html>
+    `.trim();
+
+
+    /* --------------------------------------------------------
+       SEND OWNER CANCELLATION EMAIL
+       -------------------------------------------------------- */
+
+    const sent =
+      await sendEmail({
+
+        to:
+          OWNER_EMAIL,
+
+        subject,
+
+        text,
+
+        html
+
+      });
+
+
+    if (!sent) {
+
+      console.error(
+        'OWNER CANCELLATION EMAIL WAS NOT SENT:',
+        order.id
+      );
+
+    }
+
+
+    return sent;
+
+
+  } catch (error) {
+
+    console.error(
+      'BUILD CANCELLATION EMAIL ERROR:',
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+/* ============================================================
    CREATE ORDER
    ============================================================ */
 
@@ -1287,6 +2053,25 @@ router.post(
 
 
       const order = {
+
+        /* --------------------------------------------------
+           ID
+           -------------------------------------------------- */
+
+        id:
+          orderId,
+
+        /* --------------------------------------------------
+           OWNER USER — REQUIRED so this order shows up on
+           the customer's Account / Order History page.
+
+           This field was previously missing, which caused
+           every order to be "invisible" on GET /orders and
+           GET /orders/:id (both filter by userId).
+           -------------------------------------------------- */
+
+        userId:
+          req.user.id,
 
         customer: {
           name:
@@ -1707,6 +2492,25 @@ router.post(
         });
 
 
+      /*
+       * Notify the owner that the customer has
+       * cancelled their order. Fired asynchronously
+       * so a temporary email failure never blocks
+       * or breaks the cancellation response.
+       */
+
+      sendOwnerCancellationEmail(
+        updatedOrder
+      ).catch(error => {
+
+        console.error(
+          'ASYNC OWNER CANCELLATION EMAIL ERROR:',
+          error
+        );
+
+      });
+
+
       return res.json({
 
         success:
@@ -2116,9 +2920,16 @@ router.post(
 
 
       const sent =
-        await sendOwnerOrderEmail(
-          order
-        );
+        order.status ===
+        'Cancelled'
+
+          ? await sendOwnerCancellationEmail(
+            order
+          )
+
+          : await sendOwnerOrderEmail(
+            order
+          );
 
 
       if (!sent) {
@@ -2274,7 +3085,7 @@ router.get(
 
    jha01amit@gmail.com
 
-   The email contains:
+   New order emails contain:
 
    - Order ID
    - Order status
@@ -2292,6 +3103,10 @@ router.get(
    - Shipping address
    - Delivery instructions
 
+   Cancellation emails contain the same customer/product/
+   shipping details, plus the cancellation reason and the
+   cancellation timestamp.
+
    ============================================================ */
 
 
@@ -2308,6 +3123,8 @@ router.get(
    A temporary email-provider/network problem should not
    cause a successful customer order to be rejected.
 
+   The same pattern is used for cancellation emails.
+
    ============================================================ */
 
 
@@ -2322,7 +3139,7 @@ router.get(
    - The request times out
    - A network error occurs
 
-   The order itself remains saved.
+   The order itself remains saved/updated regardless.
 
    ============================================================ */
 

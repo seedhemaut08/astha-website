@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../api';
 import Loader from '../components/Loader.jsx';
+import './Account.css';
 
 const CANCELLATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -11,17 +13,30 @@ export default function Account() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancellingOrder, setCancellingOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [confirmingOrder, setConfirmingOrder] = useState(null);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
 
   // Used to refresh the cancellation timer on the page.
   const [, setCurrentTime] = useState(Date.now());
+
+  /* ============================================================
+     LOAD ORDERS
+
+     FIXED: this previously called '/orders/my', which does not
+     exist as a backend route. The request was silently falling
+     through to GET /orders/:id with id="my", which always
+     returned 404 "Order not found." The correct endpoint is
+     the plain '/orders' collection route.
+     ============================================================ */
 
   async function loadOrders() {
     try {
       setLoading(true);
       setError('');
 
-      const { orders } = await api.get('/orders/my');
+      const { orders } = await api.get('/orders');
 
       setOrders(orders || []);
     } catch (err) {
@@ -39,12 +54,9 @@ export default function Account() {
   }, []);
 
   /*
-   * Refresh the cancellation state every minute.
-   *
-   * This means if the user keeps the Account page open
-   * while the 24-hour window expires, the button will
-   * automatically become inactive without refreshing
-   * the page.
+   * Refresh the cancellation state every minute so the
+   * button automatically disables once the 24-hour window
+   * expires, without requiring a page refresh.
    */
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,49 +67,62 @@ export default function Account() {
   }, []);
 
   /*
-   * Check whether the 24-hour cancellation window
-   * has expired for an order.
+   * Auto-dismiss the toast after a few seconds.
    */
+  useEffect(() => {
+    if (!toast) return;
+
+    const timeout = setTimeout(() => setToast(''), 4000);
+    return () => clearTimeout(timeout);
+  }, [toast]);
+
   function isCancellationExpired(order) {
-    if (!order?.createdAt) {
-      return true;
-    }
+    if (!order?.createdAt) return true;
 
-    const createdAt = new Date(
-      order.createdAt
-    ).getTime();
+    const createdAt = new Date(order.createdAt).getTime();
+    if (!Number.isFinite(createdAt)) return true;
 
-    if (!Number.isFinite(createdAt)) {
-      return true;
-    }
+    return Date.now() - createdAt >= CANCELLATION_WINDOW_MS;
+  }
 
-    return (
-      Date.now() - createdAt >=
-      CANCELLATION_WINDOW_MS
+  function getTimeRemaining(order) {
+    const createdAt = new Date(order.createdAt).getTime();
+    if (!Number.isFinite(createdAt)) return '';
+
+    const remaining = CANCELLATION_WINDOW_MS - (Date.now() - createdAt);
+    if (remaining <= 0) return '';
+
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor(
+      (remaining % (60 * 60 * 1000)) / (60 * 1000)
     );
+
+    if (hours > 0) return `${hours}h ${minutes}m left to cancel`;
+    return `${minutes}m left to cancel`;
   }
 
   /*
-   * Cancel order.
-   *
-   * Frontend checks the 24-hour rule first.
-   * Backend also checks it separately for security.
+   * Cancellation now happens through a small inline
+   * confirmation panel instead of a native browser confirm(),
+   * and supports an optional reason.
    */
+  function openCancelConfirm(orderId) {
+    setError('');
+    setCancelReason('');
+    setConfirmingOrder(orderId);
+  }
+
+  function closeCancelConfirm() {
+    setConfirmingOrder(null);
+    setCancelReason('');
+  }
+
   async function handleCancelOrder(orderId) {
-    const order = orders.find(
-      item => item.id === orderId
-    );
+    const order = orders.find(item => item.id === orderId);
+    if (!order) return;
 
-    if (!order) {
-      return;
-    }
-
-    if (
-      order.status !== 'Placed'
-    ) {
-      setError(
-        'This order can no longer be cancelled.'
-      );
+    if (order.status !== 'Placed') {
+      setError('This order can no longer be cancelled.');
       return;
     }
 
@@ -108,72 +133,84 @@ export default function Account() {
       return;
     }
 
-    const confirmed = window.confirm(
-      'Are you sure you want to cancel this order?'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setCancellingOrder(orderId);
       setError('');
 
-      await api.post(
-        `/orders/${orderId}/cancel`
-      );
+      await api.post(`/orders/${orderId}/cancel`, {
+        reason: cancelReason.trim() || undefined
+      });
 
-      // Refresh order history after cancellation.
+      setToast('Order cancelled. We\u2019ve let our team know.');
+      closeCancelConfirm();
+
       await loadOrders();
-
     } catch (err) {
-      setError(
-        err.message ||
-        'Unable to cancel this order.'
-      );
+      setError(err.message || 'Unable to cancel this order.');
     } finally {
       setCancellingOrder(null);
     }
   }
 
   function getStatusClass(status) {
-    if (!status) {
-      return '';
-    }
-
-    return status
-      .toLowerCase()
-      .replace(/\s+/g, '-');
+    if (!status) return '';
+    return status.toLowerCase().replace(/\s+/g, '-');
   }
+
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  const firstName = user?.name?.split(' ')[0] || 'there';
+  const initial = (user?.name || user?.email || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+
+  const activeOrders = orders.filter(
+    o => o.status !== 'Cancelled' && o.status !== 'Delivered'
+  ).length;
+
+  const totalSpent = orders
+    .filter(o => o.status !== 'Cancelled')
+    .reduce((sum, o) => sum + Number(o.total || 0), 0);
 
   return (
     <div className="account-page">
+
+      {toast && (
+        <div className="account-toast" role="status">
+          {toast}
+        </div>
+      )}
 
       {/* =====================================================
           ACCOUNT HEADER
       ====================================================== */}
 
-      <div className="account-page__header">
+      <div className="account-header">
 
-        <div>
+        <div className="account-header__identity">
 
-          <span className="eyebrow">
-            My Account
-          </span>
+          <div className="account-avatar" aria-hidden="true">
+            {initial}
+          </div>
 
-          <h1>
-            Namaste, {user?.name?.split(' ')[0]}
-          </h1>
-
-          <p>
-            {user?.email}
-          </p>
+          <div>
+            <span className="account-eyebrow">My Account</span>
+            <h1>Namaste, {firstName}</h1>
+            <p className="account-header__email">{user?.email}</p>
+          </div>
 
         </div>
 
         <button
-          className="btn btn--outline"
+          type="button"
+          className="account-logout"
           onClick={logout}
         >
           Logout
@@ -181,26 +218,64 @@ export default function Account() {
 
       </div>
 
+      {/* =====================================================
+          SUMMARY STRIP
+      ====================================================== */}
+
+      {!loading && orders.length > 0 && (
+        <div className="account-summary">
+
+          <div className="account-summary__stat">
+            <span className="account-summary__value">
+              {orders.length}
+            </span>
+            <span className="account-summary__label">
+              Total Orders
+            </span>
+          </div>
+
+          <div className="account-summary__divider" />
+
+          <div className="account-summary__stat">
+            <span className="account-summary__value">
+              {activeOrders}
+            </span>
+            <span className="account-summary__label">
+              In Progress
+            </span>
+          </div>
+
+          <div className="account-summary__divider" />
+
+          <div className="account-summary__stat">
+            <span className="account-summary__value">
+              &#8377;{totalSpent.toLocaleString('en-IN')}
+            </span>
+            <span className="account-summary__label">
+              Lifetime Value
+            </span>
+          </div>
+
+        </div>
+      )}
 
       {/* =====================================================
           ERROR MESSAGE
       ====================================================== */}
 
       {error && (
-        <div className="form-error account-error">
+        <div className="account-error" role="alert">
           {error}
         </div>
       )}
-
 
       {/* =====================================================
           ORDER HISTORY
       ====================================================== */}
 
-      <h3 className="account-page__section-title">
-        Order History
-      </h3>
-
+      <div className="account-section-head">
+        <h2>Order History</h2>
+      </div>
 
       {loading ? (
 
@@ -208,9 +283,14 @@ export default function Account() {
 
       ) : orders.length === 0 ? (
 
-        <p className="empty-state">
-          No orders yet — your first Astha piece awaits.
-        </p>
+        <div className="account-empty">
+          <div className="account-empty__mark">&#10022;</div>
+          <h3>No orders yet</h3>
+          <p>Your first Astha piece awaits.</p>
+          <Link to="/shop" className="btn btn--primary">
+            Browse the Collection
+          </Link>
+        </div>
 
       ) : (
 
@@ -218,50 +298,34 @@ export default function Account() {
 
           {orders.map(order => {
 
-            const cancellationExpired =
-              isCancellationExpired(order);
-
+            const cancellationExpired = isCancellationExpired(order);
             const canCancel =
-              order.status === 'Placed' &&
-              !cancellationExpired;
+              order.status === 'Placed' && !cancellationExpired;
+            const timeRemaining = canCancel
+              ? getTimeRemaining(order)
+              : '';
+            const isConfirming = confirmingOrder === order.id;
 
             return (
 
-              <div
-                className="order-card"
-                key={order.id}
-              >
+              <div className="order-card" key={order.id}>
 
-                {/* =================================================
-                    ORDER HEADER
-                ================================================== */}
+                {/* ORDER HEADER */}
 
                 <div className="order-card__head">
 
-                  <div>
-
-                    <strong>
-                      Order #{order.id}
-                    </strong>
-
-                    <span>
-                      {new Date(
-                        order.createdAt
-                      ).toLocaleDateString(
-                        'en-IN',
-                        {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        }
-                      )}
+                  <div className="order-card__id-block">
+                    <span className="order-card__label">
+                      Order
                     </span>
-
+                    <strong>#{order.id}</strong>
+                    <span className="order-card__date">
+                      {formatDate(order.createdAt)}
+                    </span>
                   </div>
 
-
                   <span
-                    className={`order-card__status ${getStatusClass(
+                    className={`order-status order-status--${getStatusClass(
                       order.status
                     )}`}
                   >
@@ -270,155 +334,128 @@ export default function Account() {
 
                 </div>
 
-
-                {/* =================================================
-                    ORDER ITEMS
-                ================================================== */}
+                {/* ORDER ITEMS */}
 
                 <div className="order-card__items">
 
-                  {order.items?.map(item => (
+                  {order.items?.map((item, index) => (
 
                     <div
-                      key={item.productId}
+                      key={item.productId || index}
                       className="order-card__item"
                     >
-
-                      <span>
-                        {item.name} × {item.quantity}
+                      <span className="order-card__item-name">
+                        {item.name}
+                        <span className="order-card__item-qty">
+                          &times;{item.quantity}
+                        </span>
                       </span>
 
-                      <span>
-                        ₹
+                      <span className="order-card__item-price">
+                        &#8377;
                         {(
                           Number(item.price || 0) *
                           Number(item.quantity || 0)
                         ).toLocaleString('en-IN')}
                       </span>
-
                     </div>
 
                   ))}
 
                 </div>
 
-
-                {/* =================================================
-                    ORDER TOTAL
-                ================================================== */}
+                {/* ORDER TOTAL */}
 
                 <div className="order-card__total">
-
+                  <span>Total</span>
                   <span>
-                    Total
+                    &#8377;{Number(order.total || 0).toLocaleString('en-IN')}
                   </span>
-
-                  <span>
-                    ₹
-                    {Number(order.total || 0)
-                      .toLocaleString('en-IN')}
-                  </span>
-
                 </div>
 
+                {/* CANCEL FLOW */}
 
-                {/* =================================================
-                    CANCEL ORDER
-                ================================================== */}
-
-                {order.status === 'Placed' && (
+                {order.status === 'Placed' && !isConfirming && (
 
                   <div className="order-card__actions">
 
                     <button
                       type="button"
-                      className="btn btn--danger"
-                      disabled={
-                        cancellingOrder === order.id ||
-                        !canCancel
-                      }
-                      onClick={() =>
-                        handleCancelOrder(order.id)
-                      }
+                      className="btn btn--danger-outline"
+                      disabled={!canCancel}
+                      onClick={() => openCancelConfirm(order.id)}
                     >
-
-                      {cancellingOrder === order.id
-                        ? 'Cancelling...'
-                        : cancellationExpired
-                          ? 'Cancellation Expired'
-                          : 'Cancel Order'}
-
+                      {cancellationExpired
+                        ? 'Cancellation Window Closed'
+                        : 'Cancel Order'}
                     </button>
 
-
-                    {/* =================================================
-                        24-HOUR CANCELLATION POLICY
-                    ================================================== */}
-
-                    {cancellationExpired ? (
-
-                      <small
-                        style={{
-                          display: 'block',
-                          marginTop: '8px',
-                          opacity: 0.65
-                        }}
-                      >
-                        Cancellation window expired.
-                        Orders can only be cancelled
-                        within 24 hours of placing them.
+                    {timeRemaining && (
+                      <small className="order-card__hint">
+                        {timeRemaining}
                       </small>
-
-                    ) : (
-
-                      <small
-                        style={{
-                          display: 'block',
-                          marginTop: '8px',
-                          opacity: 0.65
-                        }}
-                      >
-                        Orders can be cancelled within
-                        24 hours of placing them.
-                      </small>
-
                     )}
 
                   </div>
 
                 )}
 
+                {isConfirming && (
 
-                {/* =================================================
-                    CANCELLED MESSAGE
-                ================================================== */}
+                  <div className="order-card__confirm">
+
+                    <p>
+                      Cancel order #{order.id}? This can&rsquo;t be
+                      undone.
+                    </p>
+
+                    <textarea
+                      className="order-card__reason"
+                      placeholder="Reason for cancelling (optional)"
+                      rows={2}
+                      value={cancelReason}
+                      onChange={e => setCancelReason(e.target.value)}
+                    />
+
+                    <div className="order-card__confirm-actions">
+
+                      <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={closeCancelConfirm}
+                        disabled={cancellingOrder === order.id}
+                      >
+                        Keep Order
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn--danger"
+                        onClick={() => handleCancelOrder(order.id)}
+                        disabled={cancellingOrder === order.id}
+                      >
+                        {cancellingOrder === order.id
+                          ? 'Cancelling...'
+                          : 'Yes, Cancel Order'}
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                )}
+
+                {/* CANCELLED MESSAGE */}
 
                 {order.status === 'Cancelled' && (
 
                   <div className="order-card__cancelled">
-
-                    <span>
-                      This order has been cancelled.
-                    </span>
-
+                    <span>This order was cancelled.</span>
                     {order.cancelledAt && (
-
                       <small>
-                        Cancelled on{' '}
-                        {new Date(
-                          order.cancelledAt
-                        ).toLocaleDateString(
-                          'en-IN',
-                          {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          }
-                        )}
+                        Cancelled on {formatDate(order.cancelledAt)}
                       </small>
-
                     )}
-
                   </div>
 
                 )}
