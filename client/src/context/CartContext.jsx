@@ -10,6 +10,23 @@ import {
 
 /*
 =========================================================
+COUPON CONFIG — RAKSHA BANDHAN OFFER
+=========================================================
+*/
+
+const COUPON_CODE = 'RAKHI10';
+const COUPON_DISCOUNT_PERCENT = 10;
+
+// Offer valid till end of day, 28 Aug 2026, IST
+const COUPON_EXPIRY = new Date('2026-08-28T23:59:59+05:30');
+
+function isCouponWindowOpen() {
+  return Date.now() <= COUPON_EXPIRY.getTime();
+}
+
+
+/*
+=========================================================
 CART CONTEXT
 =========================================================
 */
@@ -25,273 +42,154 @@ CART PROVIDER
 
 export function CartProvider({ children }) {
 
-  /*
-  ========================================================
-  CART ITEMS
-  ========================================================
-
-  Load the cart from localStorage only once when the
-  provider is initially created.
-  ========================================================
-  */
-
   const [items, setItems] = useState(() => {
-
     try {
-
-      const saved =
-        localStorage.getItem(
-          'astha_cart'
-        );
-
-      return saved
-        ? JSON.parse(saved)
-        : [];
-
+      const saved = localStorage.getItem('astha_cart');
+      return saved ? JSON.parse(saved) : [];
     } catch {
-
       return [];
-
     }
   });
 
 
   /*
   ========================================================
-  SAVE CART
-  ========================================================
-
-  The cart is persisted whenever the items actually change.
+  COUPON STATE
   ========================================================
   */
 
-  useEffect(() => {
-
+  const [couponApplied, setCouponApplied] = useState(() => {
     try {
-
-      localStorage.setItem(
-        'astha_cart',
-        JSON.stringify(items)
-      );
-
-    } catch (error) {
-
-      console.error(
-        'Failed to save cart:',
-        error
-      );
-
+      const saved = localStorage.getItem('astha_coupon');
+      return saved === 'true' && isCouponWindowOpen();
+    } catch {
+      return false;
     }
+  });
 
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('astha_cart', JSON.stringify(items));
+    } catch (error) {
+      console.error('Failed to save cart:', error);
+    }
   }, [items]);
 
 
-  /*
-  ========================================================
-  ADD TO CART
-  ========================================================
-  */
-
-  const addToCart = useCallback(
-    (product, quantity = 1) => {
-
-      if (!product?.id) {
-        return;
-      }
-
-      setItems((prev) => {
-
-        const existing =
-          prev.find(
-            (item) =>
-              item.productId === product.id
-          );
+  useEffect(() => {
+    try {
+      localStorage.setItem('astha_coupon', couponApplied ? 'true' : 'false');
+    } catch (error) {
+      console.error('Failed to save coupon state:', error);
+    }
+  }, [couponApplied]);
 
 
-        /*
-        ==================================================
-        EXISTING PRODUCT
-        ==================================================
-        */
+  const addToCart = useCallback((product, quantity = 1) => {
+    if (!product?.id) return;
 
-        if (existing) {
+    setItems((prev) => {
+      const existing = prev.find((item) => item.productId === product.id);
 
-          return prev.map(
-            (item) =>
-              item.productId === product.id
-                ? {
-                    ...item,
-                    quantity:
-                      item.quantity +
-                      quantity
-                  }
-                : item
-          );
-        }
-
-
-        /*
-        ==================================================
-        NEW PRODUCT
-        ==================================================
-        */
-
-        return [
-          ...prev,
-
-          {
-            productId: product.id,
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            quantity
-          }
-        ];
-
-      });
-
-    },
-    []
-  );
-
-
-  /*
-  ========================================================
-  UPDATE QUANTITY
-  ========================================================
-  */
-
-  const updateQuantity = useCallback(
-    (productId, quantity) => {
-
-      /*
-      If quantity becomes zero or negative,
-      remove the item from the cart.
-      */
-
-      if (quantity <= 0) {
-
-        setItems(
-          (prev) =>
-            prev.filter(
-              (item) =>
-                item.productId !==
-                productId
-            )
+      if (existing) {
+        return prev.map((item) =>
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
         );
-
-        return;
       }
 
-
-      /*
-      Update only the matching product.
-      */
-
-      setItems(
-        (prev) =>
-          prev.map(
-            (item) =>
-              item.productId ===
-              productId
-                ? {
-                    ...item,
-                    quantity
-                  }
-                : item
-          )
-      );
-
-    },
-    []
-  );
-
-
-  /*
-  ========================================================
-  REMOVE FROM CART
-  ========================================================
-  */
-
-  const removeFromCart = useCallback(
-    (productId) => {
-
-      setItems(
-        (prev) =>
-          prev.filter(
-            (item) =>
-              item.productId !==
-              productId
-          )
-      );
-
-    },
-    []
-  );
-
-
-  /*
-  ========================================================
-  CLEAR CART
-  ========================================================
-  */
-
-  const clearCart = useCallback(() => {
-
-    setItems([]);
-
+      return [
+        ...prev,
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          category: product.category,
+          quantity
+        }
+      ];
+    });
   }, []);
 
 
-  /*
-  ========================================================
-  TOTAL
-  ========================================================
-  */
+  const updateQuantity = useCallback((productId, quantity) => {
+    if (quantity <= 0) {
+      setItems((prev) => prev.filter((item) => item.productId !== productId));
+      return;
+    }
+
+    setItems((prev) =>
+      prev.map((item) =>
+        item.productId === productId ? { ...item, quantity } : item
+      )
+    );
+  }, []);
+
+
+  const removeFromCart = useCallback((productId) => {
+    setItems((prev) => prev.filter((item) => item.productId !== productId));
+  }, []);
+
+
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
+
 
   const total = useMemo(() => {
-
     return items.reduce(
-      (sum, item) =>
-        sum +
-        Number(item.price || 0) *
-        Number(item.quantity || 0),
+      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
       0
     );
-
   }, [items]);
 
-
-  /*
-  ========================================================
-  COUNT
-  ========================================================
-  */
 
   const count = useMemo(() => {
-
-    return items.reduce(
-      (sum, item) =>
-        sum +
-        Number(item.quantity || 0),
-      0
-    );
-
+    return items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   }, [items]);
 
 
   /*
   ========================================================
-  CONTEXT VALUE
-  ========================================================
-
-  Memoizing the context value prevents a brand-new object
-  from being created on every CartProvider render.
-
-  This helps reduce unnecessary renders in components that
-  consume the cart context.
+  COUPON ACTIONS
   ========================================================
   */
+
+  const isCouponActive = couponApplied && isCouponWindowOpen();
+
+  const applyCoupon = useCallback(() => {
+    if (!isCouponWindowOpen()) {
+      return { success: false, reason: 'expired' };
+    }
+
+    setCouponApplied(true);
+    return { success: true };
+  }, []);
+
+  const removeCoupon = useCallback(() => {
+    setCouponApplied(false);
+  }, []);
+
+  const getDiscountedPrice = useCallback(
+    (price) => {
+      const p = Number(price || 0);
+      return isCouponActive
+        ? Math.round(p * (1 - COUPON_DISCOUNT_PERCENT / 100))
+        : p;
+    },
+    [isCouponActive]
+  );
+
+  const discountedTotal = useMemo(() => {
+    return isCouponActive
+      ? Math.round(total * (1 - COUPON_DISCOUNT_PERCENT / 100))
+      : total;
+  }, [total, isCouponActive]);
+
+  const couponSavings = total - discountedTotal;
+
 
   const contextValue = useMemo(
     () => ({
@@ -301,7 +199,19 @@ export function CartProvider({ children }) {
       removeFromCart,
       clearCart,
       total,
-      count
+      count,
+
+      // coupon
+      couponApplied: isCouponActive,
+      applyCoupon,
+      removeCoupon,
+      getDiscountedPrice,
+      discountedTotal,
+      couponSavings,
+      COUPON_CODE,
+      COUPON_DISCOUNT_PERCENT,
+      COUPON_EXPIRY,
+      isCouponWindowOpen
     }),
     [
       items,
@@ -310,41 +220,24 @@ export function CartProvider({ children }) {
       removeFromCart,
       clearCart,
       total,
-      count
+      count,
+      isCouponActive,
+      applyCoupon,
+      removeCoupon,
+      getDiscountedPrice,
+      discountedTotal,
+      couponSavings
     ]
   );
 
-
-  /*
-  ========================================================
-  PROVIDER
-  ========================================================
-  */
-
   return (
-
-    <CartContext.Provider
-      value={contextValue}
-    >
-
+    <CartContext.Provider value={contextValue}>
       {children}
-
     </CartContext.Provider>
-
   );
 }
 
 
-/*
-=========================================================
-USE CART HOOK
-=========================================================
-*/
-
 export function useCart() {
-
-  return useContext(
-    CartContext
-  );
-
+  return useContext(CartContext);
 }

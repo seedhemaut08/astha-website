@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 
@@ -7,12 +7,35 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../api';
 
 export default function Checkout() {
-  const { items, total, clearCart } = useCart();
+  const {
+    items,
+    total,
+    clearCart,
+    couponApplied,
+    applyCoupon,
+    removeCoupon,
+    getDiscountedPrice,
+    discountedTotal,
+    couponSavings,
+    COUPON_CODE,
+    COUPON_EXPIRY,
+    isCouponWindowOpen,
+  } = useCart();
+
   const { user } = useAuth();
   const navigate = useNavigate();
 
   /* ============================================================
      FORM STATE
+
+     NOTE: paymentMethod is locked to 'COD'. UPI and Card are
+     shown in the UI but disabled — there is no real payment
+     gateway integration yet (no redirect, no QR, no actual
+     charge), so allowing those options would let a customer
+     "place" an order while believing they paid, when in fact
+     nothing was ever charged. Only Cash on Delivery is
+     selectable until a real payment gateway (Razorpay/Stripe/
+     etc.) is integrated.
      ============================================================ */
 
   const [form, setForm] = useState({
@@ -36,6 +59,37 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
 
   /* ============================================================
+     COUPON UI STATE
+     ============================================================ */
+
+  const [couponTimeLeft, setCouponTimeLeft] = useState(() =>
+    getTimeLeft(COUPON_EXPIRY)
+  );
+  const [showYay, setShowYay] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCouponTimeLeft(getTimeLeft(COUPON_EXPIRY));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [COUPON_EXPIRY]);
+
+  function getTimeLeft(expiry) {
+    const diff = expiry.getTime() - Date.now();
+    if (diff <= 0) return null;
+
+    const totalSeconds = Math.floor(diff / 1000);
+
+    return {
+      days: Math.floor(totalSeconds / 86400),
+      hours: Math.floor((totalSeconds % 86400) / 3600),
+      minutes: Math.floor((totalSeconds % 3600) / 60),
+      seconds: totalSeconds % 60,
+    };
+  }
+
+  /* ============================================================
      UPDATE FORM
      ============================================================ */
 
@@ -55,7 +109,7 @@ export default function Checkout() {
   }
 
   /* ============================================================
-     CONFETTI BURST
+     CONFETTI BURST (order placed)
      ============================================================ */
 
   function fireConfetti() {
@@ -128,6 +182,67 @@ export default function Checkout() {
   }
 
   /* ============================================================
+     CONFETTI BURST (coupon applied) — smaller, celebratory
+     ============================================================ */
+
+  function fireCouponConfetti() {
+    try {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        startVelocity: 40,
+        colors: ['#d4af37', '#f4e4b8', '#b8860b', '#fff5e0', '#e8c674'],
+        origin: {
+          x: 0.5,
+          y: 0.4,
+        },
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          spread: 100,
+          startVelocity: 30,
+          colors: ['#d4af37', '#f4e4b8', '#b8860b'],
+          origin: {
+            x: 0.3,
+            y: 0.5,
+          },
+        });
+      }, 150);
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 60,
+          spread: 100,
+          startVelocity: 30,
+          colors: ['#d4af37', '#f4e4b8', '#b8860b'],
+          origin: {
+            x: 0.7,
+            y: 0.5,
+          },
+        });
+      }, 150);
+    } catch (confettiError) {
+      console.error('COUPON CONFETTI ERROR:', confettiError);
+    }
+  }
+
+  /* ============================================================
+     HANDLE APPLY COUPON
+     ============================================================ */
+
+  function handleApplyCoupon() {
+    const result = applyCoupon();
+
+    if (result.success) {
+      fireCouponConfetti();
+      setShowYay(true);
+      setTimeout(() => setShowYay(false), 2200);
+    }
+  }
+
+  /* ============================================================
      HANDLE ORDER SUBMIT
      ============================================================ */
 
@@ -175,8 +290,17 @@ export default function Checkout() {
       form.deliveryInstructions || ''
     ).trim();
 
-    const paymentMethod =
-      form.paymentMethod || 'COD';
+    /* ==========================================================
+       PAYMENT METHOD
+
+       HARD-LOCKED to 'COD'. Even if the form state were ever
+       tampered with (devtools, stale state, etc.), the request
+       we actually send to the server always says COD until a
+       real payment gateway exists. This is a safety net on top
+       of the disabled UI below.
+       ========================================================== */
+
+    const paymentMethod = 'COD';
 
     /* ==========================================================
        REQUIRED FIELD VALIDATION
@@ -367,6 +491,12 @@ export default function Checkout() {
 
          This keeps the checkout compatible with the current
          orders route as well as older validation logic.
+
+         COUPON:
+
+         We send the coupon code + discount + final total
+         so the backend/order record reflects what the
+         customer actually paid.
          ======================================================== */
 
       const orderPayload = {
@@ -419,7 +549,7 @@ export default function Checkout() {
         address: addressString,
 
         /* ------------------------------------------------------
-           PAYMENT
+           PAYMENT — always COD (see paymentMethod above)
            ------------------------------------------------------ */
 
         paymentMethod,
@@ -437,10 +567,17 @@ export default function Checkout() {
         deliveryType: 'delivery',
 
         /* ------------------------------------------------------
-           TOTAL
+           COUPON
            ------------------------------------------------------ */
 
-        total: Number(total),
+        couponCode: couponApplied ? COUPON_CODE : null,
+        couponDiscount: couponApplied ? Number(couponSavings) : 0,
+
+        /* ------------------------------------------------------
+           TOTAL — discounted total if coupon is applied
+           ------------------------------------------------------ */
+
+        total: Number(couponApplied ? discountedTotal : total),
       };
 
       console.log(
@@ -572,6 +709,12 @@ export default function Checkout() {
       </div>
     );
   }
+
+  /* ============================================================
+     FINAL AMOUNT TO SHOW (button + total)
+     ============================================================ */
+
+  const payableTotal = couponApplied ? discountedTotal : total;
 
   /* ============================================================
      PAGE
@@ -848,6 +991,16 @@ export default function Checkout() {
 
           {/* ====================================================
              PAYMENT
+
+             UPI and Card are shown but DISABLED (greyed out,
+             not clickable) because there is no real payment
+             gateway wired up yet — no redirect, no QR, no actual
+             charge happens. Only Cash on Delivery works.
+
+             When a real gateway (e.g. Razorpay) is integrated,
+             remove the `disabled` prop and the
+             `payment-option--disabled` class from those two
+             options.
              ==================================================== */}
 
           <h3>
@@ -857,7 +1010,7 @@ export default function Checkout() {
           <div className="payment-options">
 
             {/* ==================================================
-               COD
+               COD — the only selectable option right now
                ================================================== */}
 
             <label
@@ -890,67 +1043,57 @@ export default function Checkout() {
             </label>
 
             {/* ==================================================
-               UPI
+               UPI — DISABLED
                ================================================== */}
 
             <label
-              className={`payment-option ${
-                form.paymentMethod === 'upi'
-                  ? 'is-active'
-                  : ''
-              }`}
+              className="payment-option payment-option--disabled"
+              aria-disabled="true"
+              title="UPI payments are coming soon. Please select Cash on Delivery."
             >
 
               <input
                 type="radio"
                 name="payment"
                 value="upi"
-                checked={
-                  form.paymentMethod === 'upi'
-                }
-                onChange={() =>
-                  update(
-                    'paymentMethod',
-                    'upi'
-                  )
-                }
+                checked={false}
+                disabled
+                readOnly
               />
 
               <span>
                 UPI
+                <span className="payment-option__badge">
+                  Coming Soon
+                </span>
               </span>
 
             </label>
 
             {/* ==================================================
-               CARD
+               CARD — DISABLED
                ================================================== */}
 
             <label
-              className={`payment-option ${
-                form.paymentMethod === 'card'
-                  ? 'is-active'
-                  : ''
-              }`}
+              className="payment-option payment-option--disabled"
+              aria-disabled="true"
+              title="Card payments are coming soon. Please select Cash on Delivery."
             >
 
               <input
                 type="radio"
                 name="payment"
                 value="card"
-                checked={
-                  form.paymentMethod === 'card'
-                }
-                onChange={() =>
-                  update(
-                    'paymentMethod',
-                    'card'
-                  )
-                }
+                checked={false}
+                disabled
+                readOnly
               />
 
               <span>
                 Card
+                <span className="payment-option__badge">
+                  Coming Soon
+                </span>
               </span>
 
             </label>
@@ -969,7 +1112,7 @@ export default function Checkout() {
             {submitting
               ? 'Placing Order...'
               : `Place Order — ₹${Number(
-                  total || 0
+                  payableTotal || 0
                 ).toLocaleString('en-IN')}`}
           </button>
 
@@ -985,32 +1128,135 @@ export default function Checkout() {
             Order Summary
           </h3>
 
-          {items.map((item) => (
+          {items.map((item) => {
+            const lineOriginal =
+              Number(item.price || 0) *
+              Number(item.quantity || 1);
 
-            <div
-              className="cart-summary__row"
-              key={
-                item.productId ||
-                item.id ||
-                item._id
-              }
-            >
+            const lineDiscounted = couponApplied
+              ? getDiscountedPrice(item.price) *
+                Number(item.quantity || 1)
+              : lineOriginal;
 
-              <span>
-                {item.name} × {item.quantity}
-              </span>
+            return (
+              <div
+                className="cart-summary__row"
+                key={
+                  item.productId ||
+                  item.id ||
+                  item._id
+                }
+              >
 
-              <span>
-                ₹
-                {(
-                  Number(item.price || 0) *
-                  Number(item.quantity || 1)
-                ).toLocaleString('en-IN')}
-              </span>
+                <span>
+                  {item.name} × {item.quantity}
+                </span>
+
+                <span>
+                  {couponApplied ? (
+                    <>
+                      <span className="cart-summary__strike">
+                        ₹{lineOriginal.toLocaleString('en-IN')}
+                      </span>{' '}
+                      ₹{lineDiscounted.toLocaleString('en-IN')}
+                    </>
+                  ) : (
+                    <>₹{lineOriginal.toLocaleString('en-IN')}</>
+                  )}
+                </span>
+
+              </div>
+            );
+          })}
+
+          {/* ====================================================
+             RAKSHABANDHAN COUPON
+             ==================================================== */}
+
+          {isCouponWindowOpen() && (
+
+            <div className="checkout-coupon">
+
+              {showYay && (
+                <div className="checkout-coupon__yay">
+                  yayyyyy! 🎉
+                </div>
+              )}
+
+              <div className="checkout-coupon__header">
+                <span className="checkout-coupon__title">
+                  Raksha Bandhan Special
+                </span>
+                <span className="checkout-coupon__badge">
+                  10% OFF
+                </span>
+              </div>
+
+              <p className="checkout-coupon__line">
+                A little something from our family to yours this
+                Rakhi — every idol, 10% off with code{' '}
+                <strong>{COUPON_CODE}</strong>.
+              </p>
+
+              {!couponApplied ? (
+
+                <button
+                  type="button"
+                  className="btn btn--primary checkout-coupon__apply"
+                  onClick={handleApplyCoupon}
+                >
+                  Apply Coupon — {COUPON_CODE}
+                </button>
+
+              ) : (
+
+                <div className="checkout-coupon__applied">
+                  <span>
+                    ✓ {COUPON_CODE} applied — 10% off added
+                  </span>
+
+                  <button
+                    type="button"
+                    className="checkout-coupon__remove"
+                    onClick={removeCoupon}
+                  >
+                    Remove
+                  </button>
+                </div>
+
+              )}
+
+              {couponTimeLeft && (
+                <div className="checkout-coupon__timer">
+                  <span>Offer ends in</span>
+                  <div className="checkout-coupon__timer-units">
+                    <div><strong>{couponTimeLeft.days}</strong><small>d</small></div>
+                    <div><strong>{String(couponTimeLeft.hours).padStart(2, '0')}</strong><small>h</small></div>
+                    <div><strong>{String(couponTimeLeft.minutes).padStart(2, '0')}</strong><small>m</small></div>
+                    <div><strong>{String(couponTimeLeft.seconds).padStart(2, '0')}</strong><small>s</small></div>
+                  </div>
+                </div>
+              )}
 
             </div>
 
-          ))}
+          )}
+
+          {/* ====================================================
+             SUBTOTAL / DISCOUNT / TOTAL
+             ==================================================== */}
+
+          <div className="cart-summary__row">
+            <span>Subtotal</span>
+            <span>₹{Number(total || 0).toLocaleString('en-IN')}</span>
+          </div>
+
+          {couponApplied && (
+            <div className="cart-summary__row cart-summary__row--discount">
+              <span>{COUPON_CODE} discount</span>
+              <span>−₹{Number(couponSavings || 0).toLocaleString('en-IN')}</span>
+            </div>
+          )}
 
           <div className="cart-summary__total">
 
@@ -1021,7 +1267,7 @@ export default function Checkout() {
             <span>
               ₹
               {Number(
-                total || 0
+                payableTotal || 0
               ).toLocaleString('en-IN')}
             </span>
 

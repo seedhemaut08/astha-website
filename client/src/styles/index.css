@@ -6729,3 +6729,202 @@ textarea:focus {
 /* ============================================================
    END OF INDEX.CSS
    ============================================================ */
+
+   /* ============================================================
+   ADD THIS to your existing checkout CSS file
+   (wherever .payment-option is already styled).
+
+   Makes UPI / Card look greyed-out and non-interactive.
+   ============================================================ */
+
+.payment-option--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(60%);
+  background: rgba(255, 255, 255, 0.03);
+  pointer-events: none; /* belt-and-suspenders: blocks clicks entirely */
+}
+
+.payment-option--disabled input[type="radio"] {
+  cursor: not-allowed;
+}
+
+.payment-option__badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #999;
+  vertical-align: middle;
+}
+
+.cart-item__price--strike { text-decoration: line-through; opacity: 0.55; font-size: 0.85em; }
+.cart-item__price--offer { color: #d4af37; font-weight: 700; }
+
+/* ===== PROMO BANNER (clean single-line) ===== */
+.promo-banner {
+  background: linear-gradient(90deg, #8a6414, #d4af37, #8a6414);
+  padding: 0;
+}
+.promo-banner__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.promo-banner__text {
+  color: #1a1108;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.promo-banner__text strong {
+  font-weight: 800;
+}
+.promo-banner__timer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.promo-banner__timer-unit {
+  background: rgba(26, 17, 8, 0.15);
+  color: #1a1108;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 30px;
+  text-align: center;
+  line-height: 1.3;
+}
+.promo-banner__timer-unit small {
+  font-weight: 500;
+  margin-left: 1px;
+  opacity: 0.75;
+  font-size: 0.68em;
+}
+.promo-banner__timer-unit--seconds {
+  animation: promo-tick 1s ease-in-out infinite;
+}
+.promo-banner__timer-sep {
+  color: #1a1108;
+  opacity: 0.5;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+@keyframes promo-tick {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@media (max-width: 640px) {
+  .promo-banner__inner { flex-direction: column; gap: 6px; padding: 8px 12px; }
+  .promo-banner__text { white-space: normal; text-align: center; font-size: 0.75rem; }
+}
+
+/* ===== CHECKOUT COUPON BOX ===== */
+.checkout-coupon {
+  position: relative;
+  border: 1px dashed #d4af37;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: rgba(212, 175, 55, 0.06);
+}
+.checkout-coupon__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.checkout-coupon__title { font-weight: 600; }
+.checkout-coupon__badge {
+  background: #d4af37;
+  color: #1a1108;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.checkout-coupon__line {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+}
+.checkout-coupon__apply { width: 100%; }
+.checkout-coupon__applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #6fbf73;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.checkout-coupon__remove {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.checkout-coupon__timer {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+.checkout-coupon__timer-units {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.checkout-coupon__timer-units div {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-align: center;
+  min-width: 36px;
+}
+.checkout-coupon__timer-units strong { display: block; font-size: 0.95rem; }
+.checkout-coupon__timer-units small { opacity: 0.6; }
+
+.checkout-coupon__yay {
+  position: absolute;
+  top: -14px;
+  right: 12px;
+  background: #d4af37;
+  color: #1a1108;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  animation: checkout-coupon-yay-pop 2.2s ease forwards;
+  z-index: 2;
+}
+@keyframes checkout-coupon-yay-pop {
+  0% { transform: scale(0.5) translateY(10px); opacity: 0; }
+  15% { transform: scale(1.1) translateY(0); opacity: 1; }
+  25% { transform: scale(1); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.cart-summary__strike {
+  text-decoration: line-through;
+  opacity: 0.55;
+  font-size: 0.85em;
+  margin-right: 4px;
+}
+.cart-summary__row--discount span:last-child {
+  color: #6fbf73;
+}

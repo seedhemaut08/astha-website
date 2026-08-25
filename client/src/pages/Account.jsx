@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../api';
 import Loader from '../components/Loader.jsx';
-import './Account.css';
 
 const CANCELLATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
