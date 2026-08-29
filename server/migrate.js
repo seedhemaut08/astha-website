@@ -2,10 +2,31 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dns from 'node:dns';
 import { MongoClient } from 'mongodb';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/* ============================================================
+   DNS CONFIGURATION
+
+   MongoDB Atlas uses an SRV connection string
+   (mongodb+srv://...). Some networks/ISPs cannot resolve the
+   SRV DNS record using the system's default DNS servers, which
+   causes ECONNREFUSED during querySrv.
+
+   We explicitly configure public DNS servers here, same as
+   server/db.js does, so this standalone script can also
+   connect reliably.
+   ============================================================ */
+
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+  console.log('🌐 Node DNS servers configured: 8.8.8.8, 1.1.1.1');
+} catch (error) {
+  console.error('⚠️ Unable to configure DNS servers:', error.message);
+}
 
 const file = path.join(__dirname, 'data', 'db.json');
 
@@ -59,6 +80,23 @@ async function migrate() {
         { $set: product },
         { upsert: true }
       );
+
+      /* --------------------------------------------------
+         REMOVE STALE FIELDS
+         --------------------------------------------------
+         $set only adds/overwrites fields present in the
+         incoming object. Fields that were intentionally
+         removed from db.json (e.g. "weight") will NOT be
+         deleted by $set alone, so we explicitly unset them
+         here to keep MongoDB in sync with db.json.
+         -------------------------------------------------- */
+
+      if (!('weight' in product)) {
+        await products.updateOne(
+          { id: product.id },
+          { $unset: { weight: '' } }
+        );
+      }
     }
 
     console.log(

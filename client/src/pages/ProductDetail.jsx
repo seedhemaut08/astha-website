@@ -81,6 +81,12 @@ const STATIC_PRODUCT_GALLERIES = {
     '/images/devotion/lakshganesh2.JPG',
     '/images/devotion/lakshganesh3.JPG',
     '/images/devotion/lakshganesh4.JPG'
+  ],
+  Swan: [
+    '/images/devotion/Swan%20Pair/swann.png',
+    '/images/devotion/Swan%20Pair/swann1.JPG',
+    '/images/devotion/Swan%20Pair/swann2.JPG',
+    '/images/devotion/Swan%20Pair/swann3.JPG'
   ]
 };
 
@@ -311,6 +317,14 @@ export default function ProductDetail() {
   const couponPrice = getDiscountedPrice(pricing.price);
   const formattedCouponPrice = Number(couponPrice).toLocaleString('en-IN');
 
+  const hasDetailedDescription =
+    typeof product.detailedDescription === 'string' &&
+    product.detailedDescription.trim() !== '';
+
+  const hasHighlights =
+    Array.isArray(product.highlights) &&
+    product.highlights.length > 0;
+
 
   return (
     <div className="product-detail">
@@ -450,19 +464,44 @@ export default function ProductDetail() {
           {product.description}
         </p>
 
+        {hasDetailedDescription && (
+          <div className="product-detail__more">
+
+            <h3 className="product-detail__more-heading">
+              Detailed Description
+            </h3>
+
+            <p className="product-detail__more-text">
+              {product.detailedDescription}
+            </p>
+
+          </div>
+        )}
+
+        {hasHighlights && (
+          <div className="product-detail__highlights">
+
+            <h3 className="product-detail__more-heading">
+              Highlights
+            </h3>
+
+            <ul className="product-detail__highlights-list">
+              {product.highlights.map((point, index) => (
+                <li key={index}>
+                  {point}
+                </li>
+              ))}
+            </ul>
+
+          </div>
+        )}
+
         <dl className="product-detail__specs">
 
           <div>
             <dt>Height</dt>
             <dd>{product.height || '—'}</dd>
           </div>
-
-          {product.weight && (
-            <div>
-              <dt>Weight</dt>
-              <dd>{product.weight}</dd>
-            </div>
-          )}
 
           <div>
             <dt>Availability</dt>

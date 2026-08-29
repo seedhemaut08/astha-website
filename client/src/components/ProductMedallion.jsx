@@ -179,6 +179,33 @@ export default function ProductMedallion({
 
   /*
   ========================================================
+  VIDEO READY STATE
+
+  Becomes true only once the browser has actually
+  buffered enough of the video to play it smoothly.
+  Until then we keep showing the product image so the
+  card never goes blank / shows the page background.
+  ========================================================
+  */
+
+  const [videoReady, setVideoReady] = useState(false);
+
+
+  /*
+  ========================================================
+  VIDEO STALLED / SLOW STATE
+
+  True while the browser is actively waiting for more
+  video data after playback was requested. Used to show
+  a small "loading" pulse instead of a blank card.
+  ========================================================
+  */
+
+  const [videoStalled, setVideoStalled] = useState(false);
+
+
+  /*
+  ========================================================
   RESET WHEN PRODUCT CHANGES
   ========================================================
   */
@@ -187,6 +214,8 @@ export default function ProductMedallion({
     setImageFailed(false);
     setVideoSourceIndex(0);
     setVideoRequested(false);
+    setVideoReady(false);
+    setVideoStalled(false);
     setIsFlipped(false);
   }, [image, category]);
 
@@ -329,6 +358,9 @@ export default function ProductMedallion({
       } catch {
         // Ignore media reset errors.
       }
+
+      setVideoReady(false);
+      setVideoStalled(false);
     }
 
   }, [
@@ -414,6 +446,9 @@ export default function ProductMedallion({
 
   const handleVideoError = () => {
 
+    setVideoReady(false);
+    setVideoStalled(false);
+
     if (
       resolvedCategory === 'Shankh'
     ) {
@@ -436,6 +471,37 @@ export default function ProductMedallion({
 
 
     setVideoRequested(false);
+  };
+
+
+  /*
+  ========================================================
+  VIDEO CAN PLAY
+
+  Fired once the browser has enough data buffered to
+  start playback smoothly. Only now do we hide the
+  fallback image behind the video.
+  ========================================================
+  */
+
+  const handleVideoCanPlay = () => {
+    setVideoReady(true);
+    setVideoStalled(false);
+  };
+
+
+  /*
+  ========================================================
+  VIDEO WAITING
+
+  Fired when playback has started but the browser has
+  run out of buffered data and is fetching more. We show
+  a small loading pulse instead of leaving the card blank.
+  ========================================================
+  */
+
+  const handleVideoWaiting = () => {
+    setVideoStalled(true);
   };
 
 
@@ -622,23 +688,46 @@ export default function ProductMedallion({
 
           {/* =================================================
               BACK — VIDEO
+              A safety-net image is always painted behind
+              the video (via inline background style) so
+              the card can NEVER show a blank / page
+              background while the video is still loading.
           ================================================== */}
 
           <div
             className={
               'medallion__face medallion__back'
             }
+
+            style={
+              imageSrc
+                ? {
+                    backgroundImage: `url(${imageSrc})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }
+                : undefined
+            }
           >
 
 
-            {videoRequested && videoSrc ? (
+            {videoRequested && videoSrc && (
 
               <video
                 ref={videoRef}
 
                 className={
-                  'medallion__video'
+                  `medallion__video ${
+                    videoReady
+                      ? 'medallion__video--ready'
+                      : ''
+                  }`
                 }
+
+                style={{
+                  opacity: videoReady ? 1 : 0,
+                  transition: 'opacity 0.25s ease',
+                }}
 
                 src={videoSrc}
 
@@ -650,7 +739,19 @@ export default function ProductMedallion({
 
                 playsInline
 
-                preload="none"
+                preload="metadata"
+
+                onCanPlay={
+                  handleVideoCanPlay
+                }
+
+                onPlaying={
+                  handleVideoCanPlay
+                }
+
+                onWaiting={
+                  handleVideoWaiting
+                }
 
                 onError={
                   handleVideoError
@@ -661,7 +762,10 @@ export default function ProductMedallion({
                 }
               />
 
-            ) : (
+            )}
+
+
+            {(!videoRequested || !videoSrc) && (
 
               <div
                 className={
@@ -680,6 +784,48 @@ export default function ProductMedallion({
                       : 'Video coming soon'
                   }
                 </small>
+
+              </div>
+
+            )}
+
+
+            {/* =================================================
+                LOADING PULSE — shown only while the
+                video has been requested but is still
+                buffering. The safety-net image behind it
+                stays fully visible the whole time.
+            ================================================== */}
+
+            {videoRequested && videoSrc && !videoReady && (
+
+              <div
+                className="medallion__video-loading"
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none',
+                }}
+              >
+
+                <span
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    border: '2px solid rgba(255,255,255,0.35)',
+                    borderTopColor: 'rgba(255,255,255,0.9)',
+                    animation: videoStalled
+                      ? 'medallion-spin 0.8s linear infinite'
+                      : 'none',
+                    opacity: videoStalled ? 1 : 0,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                />
 
               </div>
 
@@ -768,6 +914,14 @@ export default function ProductMedallion({
 
 
       </div>
+
+
+      <style>{`
+        @keyframes medallion-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
 
     </div>

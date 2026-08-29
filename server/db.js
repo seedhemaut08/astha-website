@@ -209,7 +209,7 @@ const seedProducts = [
 
       {
         name:
-          'Riddhi Siddhi Ganesh Murti',
+          'Lord Ganesha',
 
         price:
           4499,

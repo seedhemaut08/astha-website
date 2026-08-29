@@ -57,6 +57,7 @@ import {
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
+import reviewRoutes from './routes/reviews.js';
 
 
 /*
@@ -245,6 +246,19 @@ app.use(
   '/api/orders',
   requireDatabase,
   orderRoutes
+);
+
+
+/*
+=========================================================
+REVIEW ROUTES
+=========================================================
+*/
+
+app.use(
+  '/api/reviews',
+  requireDatabase,
+  reviewRoutes
 );
 
 
