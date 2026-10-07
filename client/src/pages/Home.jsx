@@ -30,21 +30,21 @@ const CATEGORIES = [
     name: 'Lakshmi Ji',
     tag: 'ल',
     blurb: 'Prosperity, at home.',
-    image: '/images/devotion/lakshmi.png',
+    image: '/images/devotion/lakshmi.webp',
     video: '/images/devotion/lakshmir.mp4',
   },
   {
     name: 'Krishnaleela Clock',
     tag: 'क',
     blurb: 'Divine time, eternal stories.',
-    image: '/images/devotion/ghadi.png',
+    image: '/images/devotion/ghadi.webp',
     video: '/images/devotion/clockr.mp4',
   },
   {
     name: 'Peacock',
     tag: 'म',
     blurb: 'Stillness, in silver.',
-    image: '/images/devotion/mor.png',
+    image: '/images/devotion/mor.webp',
     video: '/images/devotion/morr.mp4',
   },
 ];
@@ -265,7 +265,7 @@ export default function Home() {
         ==================================================== */}
 
         <img
-          src="/images/HP%20SILVER.png"
+          src="/images/HP%20SILVER.webp"
           alt="Astha Silver handcrafted collection"
           className="hero__image"
           loading="eager"

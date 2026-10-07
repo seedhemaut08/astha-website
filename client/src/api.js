@@ -26,6 +26,8 @@ If it is not provided, the frontend uses:
 =========================================================
 */
 
+import { toWebp } from './imagePaths';
+
 
 /*
 =========================================================
@@ -251,7 +253,7 @@ async function request(
     ======================================================
     */
 
-    return data;
+    return toWebp(data);
 
   } catch (error) {
 

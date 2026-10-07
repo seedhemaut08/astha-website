@@ -10,71 +10,71 @@ import Loader from '../components/Loader.jsx';
 
 const STATIC_PRODUCT_GALLERIES = {
   'Ganesh Ji': [
-    '/images/devotion/Ganesh/ganesh.png',
-    '/images/devotion/Ganesh/ganesh2.JPG',
-    '/images/devotion/Ganesh/ganesh3.JPG',
-    '/images/devotion/Ganesh/ganesh4.png'
+    '/images/devotion/Ganesh/ganesh.webp',
+    '/images/devotion/Ganesh/ganesh2.webp',
+    '/images/devotion/Ganesh/ganesh3.webp',
+    '/images/devotion/Ganesh/ganesh4.webp'
   ],
   'Krishnaleela Clock': [
-    '/images/devotion/Krishna%20Leela%20Clock/clock.png',
-    '/images/devotion/Krishna%20Leela%20Clock/clock2.JPG',
-    '/images/devotion/Krishna%20Leela%20Clock/clock3.JPG',
-    '/images/devotion/Krishna%20Leela%20Clock/clock4.JPG'
+    '/images/devotion/Krishna%20Leela%20Clock/clock.webp',
+    '/images/devotion/Krishna%20Leela%20Clock/clock2.webp',
+    '/images/devotion/Krishna%20Leela%20Clock/clock3.webp',
+    '/images/devotion/Krishna%20Leela%20Clock/clock4.webp'
   ],
   Peacock: [
-    '/images/devotion/Peacock/peacock.png',
-    '/images/devotion/Peacock/peacock2.JPG',
-    '/images/devotion/Peacock/peacock3.JPG',
-    '/images/devotion/Peacock/peacock4.JPG'
+    '/images/devotion/Peacock/peacock.webp',
+    '/images/devotion/Peacock/peacock2.webp',
+    '/images/devotion/Peacock/peacock3.webp',
+    '/images/devotion/Peacock/peacock4.webp'
   ],
   'Kamal Aasan Lakshmi Murti': [
-    '/images/devotion/lakshmi/lakshami.png',
-    '/images/devotion/lakshmi/lakshmi2.JPG',
-    '/images/devotion/lakshmi/lakshmi3.JPG',
-    '/images/devotion/lakshmi/lakshmi4.JPG'
+    '/images/devotion/lakshmi/lakshami.webp',
+    '/images/devotion/lakshmi/lakshmi2.webp',
+    '/images/devotion/lakshmi/lakshmi3.webp',
+    '/images/devotion/lakshmi/lakshmi4.webp'
   ],
   Shankh: [
-    '/images/devotion/Shankh/Shankh.png',
-    '/images/devotion/Shankh/shankh2.JPG',
-    '/images/devotion/Shankh/shankh3.JPG',
-    '/images/devotion/Shankh/shankh4.JPG'
+    '/images/devotion/Shankh/Shankh.webp',
+    '/images/devotion/Shankh/shankh2.webp',
+    '/images/devotion/Shankh/shankh3.webp',
+    '/images/devotion/Shankh/shankh4.webp'
   ],
   'Candle Stand': [
-    '/images/devotion/Candle/candle.png',
-    '/images/devotion/Candle/Candle%20Stand%20Closeup%20.png',
-    '/images/devotion/Candle/candle2.JPG',
-    '/images/devotion/Candle/candle3.JPG',
-    '/images/devotion/Candle/candle4.JPG'
+    '/images/devotion/Candle/candle.webp',
+    '/images/devotion/Candle/Candle%20Stand%20Closeup%20.webp',
+    '/images/devotion/Candle/candle2.webp',
+    '/images/devotion/Candle/candle3.webp',
+    '/images/devotion/Candle/candle4.webp'
   ],
   Kaamdhenu: [
-    '/images/devotion/kaamdhenu/cow.jpeg',
-    '/images/devotion/kaamdhenu/cow2.JPG',
-    '/images/devotion/kaamdhenu/cow3.JPG',
-    '/images/devotion/kaamdhenu/cow4.JPG'
+    '/images/devotion/kaamdhenu/cow.webp',
+    '/images/devotion/kaamdhenu/cow2.webp',
+    '/images/devotion/kaamdhenu/cow3.webp',
+    '/images/devotion/kaamdhenu/cow4.webp'
   ],
   'Photo Frame': [
-    '/images/devotion/frame/frame.png',
-    '/images/devotion/frame/frame2.JPG',
-    '/images/devotion/frame/frame3.JPG',
-    '/images/devotion/frame/IMG_0834.JPG'
+    '/images/devotion/frame/frame.webp',
+    '/images/devotion/frame/frame2.webp',
+    '/images/devotion/frame/frame3.webp',
+    '/images/devotion/frame/IMG_0834.webp'
   ],
   'Ram Mandir': [
-    '/images/devotion/Ram%20Mandir/ramM.png',
-    '/images/devotion/Ram%20Mandir/ram2.JPG',
-    '/images/devotion/Ram%20Mandir/ram3.JPG',
-    '/images/devotion/Ram%20Mandir/ram4.JPG'
+    '/images/devotion/Ramm/ramM.webp',
+    '/images/devotion/Ramm/ram2.webp',
+    '/images/devotion/Ramm/ram3.webp',
+    '/images/devotion/Ramm/ram4.webp'
   ],
   'Peacock Candle Stand': [
-    '/images/devotion/peacockcan/peacockcan.JPG',
-    '/images/devotion/peacockcan/peacockcan2.JPG',
-    '/images/devotion/peacockcan/peacockcan3.JPG',
-    '/images/devotion/peacockcan/peacockcan4.JPG'
+    '/images/devotion/peacockcan/peacockcan.webp',
+    '/images/devotion/peacockcan/peacockcan2.webp',
+    '/images/devotion/peacockcan/peacockcan3.webp',
+    '/images/devotion/peacockcan/peacockcan4.webp'
   ],
   Mahalakshmi: [
-    '/images/devotion/Mahalakshmi/mahal.JPG',
-    '/images/devotion/Mahalakshmi/mahal2.JPG',
-    '/images/devotion/Mahalakshmi/mahal3.JPG',
-    '/images/devotion/Mahalakshmi/mahal4.JPG'
+    '/images/devotion/Mahalakshmi/mahal.webp',
+    '/images/devotion/Mahalakshmi/mahal2.webp',
+    '/images/devotion/Mahalakshmi/mahal3.webp',
+    '/images/devotion/Mahalakshmi/mahal4.webp'
   ],
   'Lakshmi Ganesh Pair': [
     '/images/devotion/lakshganesh.png',
@@ -83,10 +83,10 @@ const STATIC_PRODUCT_GALLERIES = {
     '/images/devotion/lakshganesh4.JPG'
   ],
   Swan: [
-    '/images/devotion/Swan%20Pair/swann.png',
-    '/images/devotion/Swan%20Pair/swann1.JPG',
-    '/images/devotion/Swan%20Pair/swann2.JPG',
-    '/images/devotion/Swan%20Pair/swann3.JPG'
+    '/images/devotion/Swan%20Pair/swann.webp',
+    '/images/devotion/Swan%20Pair/swann1.webp',
+    '/images/devotion/Swan%20Pair/swann2.webp',
+    '/images/devotion/Swan%20Pair/swann3.webp'
   ]
 };
 
@@ -380,9 +380,8 @@ export default function ProductDetail() {
                   <button
                     key={`${image}-${index}`}
                     type="button"
-                    className={`product-detail__gallery-thumb ${
-                      activeImage === index ? 'is-active' : ''
-                    }`}
+                    className={`product-detail__gallery-thumb ${activeImage === index ? 'is-active' : ''
+                      }`}
                     onClick={() => selectImage(index)}
                     aria-label={`View product image ${index + 1}`}
                     aria-current={activeImage === index ? 'true' : undefined}

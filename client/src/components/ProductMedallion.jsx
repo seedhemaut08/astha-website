@@ -40,12 +40,12 @@ const DEFAULT_MEDIA = {
   },
 
   'Lakshmi Ji': {
-    image: '/images/devotion/lakshmi.png',
+    image: '/images/devotion/lakshmi.webp',
     video: '/images/devotion/lakshmir.mp4',
   },
 
   'Krishnaleela Clock': {
-    image: '/images/devotion/ghadi.png',
+    image: '/images/devotion/ghadi.webp',
     video: '/images/devotion/clockr.mp4',
   },
 
@@ -55,7 +55,7 @@ const DEFAULT_MEDIA = {
   },
 
   'Peacock': {
-    image: '/images/devotion/mor.png',
+    image: '/images/devotion/mor.webp',
     video: '/images/devotion/morr.mp4',
   },
 
@@ -65,12 +65,12 @@ const DEFAULT_MEDIA = {
   },
 
   'Cow & Calf': {
-    image: '/images/devotion/cow.png',
+    image: '/images/devotion/cow.webp',
     video: '/images/devotion/cowr.mp4',
   },
 
   'Shankh': {
-    image: '/images/devotion/Shankh.png',
+    image: '/images/devotion/Shankh.webp',
     video: '/images/devotion/Shankhr.mp4',
 
     videoFallbacks: [
@@ -82,17 +82,17 @@ const DEFAULT_MEDIA = {
   },
 
   'Candle Stand': {
-    image: '/images/devotion/candle.png',
+    image: '/images/devotion/candle.webp',
     video: '/images/devotion/candler.mp4',
   },
 
   'Swan': {
-    image: '/images/devotion/swan.png',
+    image: '/images/devotion/swan.webp',
     video: '/images/devotion/swanr.mp4',
   },
 
   'Photo Frame': {
-    image: '/images/devotion/frame.png',
+    image: '/images/devotion/frame.webp',
     video: '/images/devotion/framer.mp4',
   },
 };
@@ -113,6 +113,20 @@ const supportsHover = () => {
     '(hover: hover) and (pointer: fine)'
   ).matches;
 };
+
+
+/*
+=========================================================
+ACTIVE CARD TRACKER
+=========================================================
+
+Only one card may keep its video open at a time.
+Opening a new card closes the previously opened one,
+so several heavy videos never sit in memory together.
+=========================================================
+*/
+
+let activeCardClose = null;
 
 
 /*
@@ -371,6 +385,58 @@ export default function ProductMedallion({
 
   /*
   ========================================================
+  RELEASE VIDEO MEMORY
+
+  After the card flips back, the video element is removed
+  once the flip animation has finished. This frees the
+  buffered video data so the tab never runs out of memory.
+  ========================================================
+  */
+
+  useEffect(() => {
+    if (isFlipped || !videoRequested) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      const videoElement = videoRef.current;
+
+      if (videoElement) {
+        videoElement.pause();
+        videoElement.removeAttribute('src');
+        videoElement.load();
+      }
+
+      setVideoRequested(false);
+    }, 700);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isFlipped, videoRequested]);
+
+
+  /*
+  ========================================================
+  CLAIM ACTIVE SLOT
+
+  Closes whichever other card is currently open.
+  ========================================================
+  */
+
+  const claimActiveSlot = () => {
+    if (activeCardClose) {
+      activeCardClose();
+    }
+
+    activeCardClose = () => {
+      setIsFlipped(false);
+    };
+  };
+
+
+  /*
+  ========================================================
   DESKTOP HOVER
   ========================================================
   */
@@ -379,6 +445,8 @@ export default function ProductMedallion({
     if (!supportsHover()) {
       return;
     }
+
+    claimActiveSlot();
 
     if (videoSrc) {
       setVideoRequested(true);
@@ -412,6 +480,11 @@ export default function ProductMedallion({
   const handleMobileFlip = (event) => {
     event.preventDefault();
     event.stopPropagation();
+
+
+    if (!isFlipped) {
+      claimActiveSlot();
+    }
 
 
     if (!videoRequested && videoSrc) {
