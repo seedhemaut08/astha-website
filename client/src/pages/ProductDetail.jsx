@@ -56,7 +56,7 @@ const STATIC_PRODUCT_GALLERIES = {
     '/images/devotion/frame/frame.webp',
     '/images/devotion/frame/frame2.webp',
     '/images/devotion/frame/frame3.webp',
-    '/images/devotion/frame/IMG_0834.webp'
+    // '/images/devotion/frame/IMG_0834.webp'
   ],
   'Ram Mandir': [
     '/images/devotion/Ramm/ramM.webp',
